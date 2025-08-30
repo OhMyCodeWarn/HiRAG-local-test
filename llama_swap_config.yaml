@@ -6,15 +6,16 @@ models:
       - "GGML_CUDA_FA_ALL_QUANTS=1"
       - "MODEL=/home/nvk/.cache/huggingface/hub/models--unsloth--Qwen3-30B-A3B-Instruct-2507-GGUF/snapshots/eea7b2be5805a5f151f8847ede8e5f9a9284bf77/Qwen3-30B-A3B-Instruct-2507-UD-Q8_K_XL.gguf"
     cmd: /home/nvk/Projects/llama.cpp/build/bin/llama-server
-      --model "$MODEL"
+      -m "/home/nvk/.cache/huggingface/hub/models--unsloth--Qwen3-30B-A3B-Instruct-2507-GGUF/snapshots/eea7b2be5805a5f151f8847ede8e5f9a9284bf77/Qwen3-30B-A3B-Instruct-2507-UD-Q8_K_XL.gguf"
       --threads -1
       --alias "qwen3-30b-a3b-Instruct-2507"
       --n-gpu-layers 99
+      -n 16384
       --parallel 4
       --flash-attn
       --cache-type-k q8_0
       --cache-type-v q8_0
-      --ctx-size 245760
+      --ctx-size 230400
       --cpu-moe
       --temp 0.7
       --min-p 0.0
@@ -30,13 +31,12 @@ models:
     env:
       - "MODEL=/home/nvk/.cache/huggingface/hub/models--jinaai--jina-embeddings-v4-text-retrieval-GGUF/snapshots/c29af6c5c28af2448ffda650afa0b8ea24076625/jina-embeddings-v4-text-retrieval-IQ3_M.gguf"
     cmd: /home/nvk/Projects/llama.cpp/build/bin/llama-server
-      -m "$MODEL"
+      -m "/home/nvk/.cache/huggingface/hub/models--jinaai--jina-embeddings-v4-text-retrieval-GGUF/snapshots/c29af6c5c28af2448ffda650afa0b8ea24076625/jina-embeddings-v4-text-retrieval-IQ3_M.gguf"
       --embedding
       --pooling mean
-      -b 8192
       -ub 8192
       -c 8192
-      --flash-attention
+      --flash-attn
       --alias "jina-embeddings-v4"
       --port ${PORT}
 groups:

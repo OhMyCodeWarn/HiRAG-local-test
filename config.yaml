@@ -31,4 +31,4 @@ hirag:
   enable_hierachical_mode: true
   embedding_batch_num: 6
   embedding_func_max_async: 8
-  enable_naive_rag: true
+  enable_naive_rag: false
