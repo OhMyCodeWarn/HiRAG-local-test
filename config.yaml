@@ -1,9 +1,9 @@
 # OpenAI Configuration
 openai:
-  embedding_model: "text-embedding-ada-002"
-  model: "gpt-4o"
-  api_key: "***"
-  base_url: "***"
+  embedding_model: "jina-embeddings-v4"
+  model: "qwen3-30b-a3b-Instruct-2507"
+  api_key: "llamacpp"
+  base_url: "http://localhost:8080/v1"
 
 # GLM Configuration
 glm:
@@ -20,13 +20,13 @@ deepseek:
 
 # Model Parameters
 model_params:
-  openai_embedding_dim: 1536
+  openai_embedding_dim: 2048
   glm_embedding_dim: 2048
   max_token_size: 8192
 
 # HiRAG Configuration
 hirag:
-  working_dir: "your_work_dir"
+  working_dir: "logger_hirag_data"
   enable_llm_cache: false
   enable_hierachical_mode: true
   embedding_batch_num: 6
