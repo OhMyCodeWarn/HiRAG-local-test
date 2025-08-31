@@ -26,7 +26,7 @@ model_params:
 
 # HiRAG Configuration
 hirag:
-  working_dir: "logger_hirag_data"
+  working_dir: "vol2-hirag"
   enable_llm_cache: false
   enable_hierachical_mode: true
   embedding_batch_num: 6

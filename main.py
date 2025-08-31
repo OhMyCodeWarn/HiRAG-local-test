@@ -42,26 +42,13 @@ def wrap_embedding_func_with_attrs(**kwargs):
 @wrap_embedding_func_with_attrs(embedding_dim=config['model_params']['openai_embedding_dim'], max_token_size=config['model_params']['max_token_size'])
 async def OPENAI_embedding(texts: list[str]) -> np.ndarray:
     openai_async_client = AsyncOpenAI(base_url=OPENAI_URL, api_key=OPENAI_API_KEY)
-    # breakpoint()
     texts4jinja = [f"Passage: {text}" for text in texts]
+    # texts4jinja = [f"Query: {text}" for text in texts]
+    print(f"{texts4jinja = }")
     response = await openai_async_client.embeddings.create(
         model=OPENAI_EMBEDDING_MODEL, input=texts4jinja, encoding_format="float"
     )
     return np.array([dp.embedding for dp in response.data])
-
-# @wrap_embedding_func_with_attrs(embedding_dim=config['model_params']['glm_embedding_dim'], max_token_size=config['model_params']['max_token_size'])
-# async def GLM_embedding(texts: list[str]) -> np.ndarray:
-#     model_name = config['glm']['embedding_model']
-#     client = AsyncOpenAI(
-#         api_key=GLM_API_KEY,
-#         base_url=GLM_URL
-#     )
-#     embedding = client.embeddings.create(
-#         input=texts,
-#         model=model_name,
-#     )
-#     final_embedding = [d.embedding for d in embedding.data]
-#     return np.array(final_embedding)
 
 async def OPENAI_model_if_cache(
     prompt, system_prompt=None, history_messages=[], **kwargs
@@ -110,9 +97,10 @@ graph_func = HiRAG(
 )
 
 # comment this if the working directory has already been indexed
-with open("logger_docs/logging.md") as f:
-    graph_func.insert(f.read())
+with open("book/vol_2.md") as f:
+    vol_content = f.read()
+graph_func.insert(vol_content)
 
 
 # print("Perform hi search:")
-# print(graph_func.query("What are the top themes in this story?", param=QueryParam(mode="hi")))
+# print(graph_func.query("Что такое Монитор Заданий?", param=QueryParam(mode="hi")))

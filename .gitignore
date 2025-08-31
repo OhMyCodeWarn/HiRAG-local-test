@@ -8,6 +8,8 @@ tests/original_workflow.txt
 # eval/datasets/agriculture
 # eval/datasets/legal
 # eval/datasets/cs
+book
+book-hirag
 eval/datasets/music
 eval/datasets/mix/work_dir_glm_base
 eval/datasets/mix/work_dir_deepseek_hi
@@ -195,4 +197,3 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
-
