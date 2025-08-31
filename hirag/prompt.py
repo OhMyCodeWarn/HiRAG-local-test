@@ -8,77 +8,80 @@ PROMPTS = {}
 
 PROMPTS[
     "claim_extraction"
-] = """-Target activity-
-You are an intelligent assistant that helps a human analyst to analyze claims against certain entities presented in a text document.
+] = """\
+-Целевая деятельность-
+Вы - интеллектуальный помощник, который помогает аналитику-человеку анализировать утверждения против определенных сущностей, представленных в текстовом документе.
 
--Goal-
-Given a text document that is potentially relevant to this activity, an entity specification, and a claim description, extract all entities that match the entity specification and all claims against those entities.
+-Цель-
+Дан текстовый документ, который потенциально релевантен для этой деятельности, спецификация сущности и описание утверждения. Извлеките все сущности, которые соответствуют спецификации сущности, и все утверждения против этих сущностей.
 
--Steps-
-1. Extract all named entities that match the predefined entity specification. Entity specification can either be a list of entity names or a list of entity types.
-2. For each entity identified in step 1, extract all claims associated with the entity. Claims need to match the specified claim description, and the entity should be the subject of the claim.
-For each claim, extract the following information:
-- Subject: name of the entity that is subject of the claim, capitalized. The subject entity is one that committed the action described in the claim. Subject needs to be one of the named entities identified in step 1.
-- Object: name of the entity that is object of the claim, capitalized. The object entity is one that either reports/handles or is affected by the action described in the claim. If object entity is unknown, use **NONE**.
-- Claim Type: overall category of the claim, capitalized. Name it in a way that can be repeated across multiple text inputs, so that similar claims share the same claim type
-- Claim Status: **TRUE**, **FALSE**, or **SUSPECTED**. TRUE means the claim is confirmed, FALSE means the claim is found to be False, SUSPECTED means the claim is not verified.
-- Claim Description: Detailed description explaining the reasoning behind the claim, together with all the related evidence and references.
-- Claim Date: Period (start_date, end_date) when the claim was made. Both start_date and end_date should be in ISO-8601 format. If the claim was made on a single date rather than a date range, set the same date for both start_date and end_date. If date is unknown, return **NONE**.
-- Claim Source Text: List of **all** quotes from the original text that are relevant to the claim.
+-Шаги-
+1. Извлеките все именованные сущности, которые соответствуют предопределенной спецификации сущности. Спецификация сущности может быть либо списком имен сущностей, либо списком типов сущностей.
+2. Для каждой сущности, идентифицированной на шаге 1, извлеките все утверждения, связанные с сущностью. Утверждения должны соответствовать указанному описанию утверждения, и сущность должна быть субъектом утверждения.
+Для каждого утверждения извлеките следующую информацию:
+- Субъект: имя сущности, которая является субъектом утверждения, с заглавной буквы. Сущность-субъект - это та, которая совершила действие, описанное в утверждении. Субъект должен быть одной из именованных сущностей, идентифицированных на шаге 1.
+- Объект: имя сущности, которая является объектом утверждения, с заглавной буквы. Сущность-объект - это та, которая либо сообщает/обрабатывает, либо подвергается влиянию действия, описанного в утверждении. Если сущность-объект неизвестна, используйте **NONE**.
+- Тип утверждения: общая категория утверждения, с заглавной буквы. Назовите его таким образом, чтобы его можно было повторить в нескольких текстовых вводах, так чтобы похожие утверждения имели один и тот же тип утверждения.
+- Статус утверждения: **TRUE**, **FALSE** или **SUSPECTED**. TRUE означает, что утверждение подтверждено, FALSE означает, что утверждение оказалось ложным, SUSPECTED означает, что утверждение не проверено.
+- Описание утверждения: Подробное описание, объясняющее обоснование утверждения, вместе со всеми связанными доказательствами и ссылками.
+- Дата утверждения: Период (start_date, end_date), когда было сделано утверждение. И start_date, и end_date должны быть в формате ISO-8601. Если утверждение было сделано в одну дату, а не в диапазоне дат, установите одну и ту же дату для start_date и end_date. Если дата неизвестна, верните **NONE**.
+- Исходный текст утверждения: Список **всех** цитат из оригинального текста, которые релевантны для утверждения.
 
-Format each claim as (<subject_entity>{tuple_delimiter}<object_entity>{tuple_delimiter}<claim_type>{tuple_delimiter}<claim_status>{tuple_delimiter}<claim_start_date>{tuple_delimiter}<claim_end_date>{tuple_delimiter}<claim_description>{tuple_delimiter}<claim_source>)
+Форматируйте каждое утверждение как (<subject_entity>{tuple_delimiter}<object_entity>{tuple_delimiter}<claim_type>{tuple_delimiter}<claim_status>{tuple_delimiter}<claim_start_date>{tuple_delimiter}<claim_end_date>{tuple_delimiter}<claim_description>{tuple_delimiter}<claim_source>)
 
-3. Return output in English as a single list of all the claims identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+3. Верните вывод на русском языке как единый список всех утверждений, идентифицированных на шагах 1 и 2. Используйте **{record_delimiter}** как разделитель списка.
 
-4. When finished, output {completion_delimiter}
+4. По завершении выведите {completion_delimiter}
 
--Examples-
-Example 1:
-Entity specification: organization
-Claim description: red flags associated with an entity
-Text: According to an article on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B. The company is owned by Person C who was suspected of engaging in corruption activities in 2015.
-Output:
+-Примеры-
+Пример 1:
+Спецификация сущности: organization
+Описание утверждения: красные флаги, связанные с сущностью
+Текст: Согласно статье от 2022/01/10, Компания А была оштрафована за сговор на торгах при участии в нескольких государственных тендерах, опубликованных Государственным агентством Б. Компания принадлежит Лицу В, которое подозревалось в участии в коррупционной деятельности в 2015 году.
+Вывод:
 
-(COMPANY A{tuple_delimiter}GOVERNMENT AGENCY B{tuple_delimiter}ANTI-COMPETITIVE PRACTICES{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}Company A was found to engage in anti-competitive practices because it was fined for bid rigging in multiple public tenders published by Government Agency B according to an article published on 2022/01/10{tuple_delimiter}According to an article published on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B.)
+(КОМПАНИЯ А{tuple_delimiter}ГОСУДАРСТВЕННОЕ АГЕНТСТВО Б{tuple_delimiter}АНТИКОНКУРЕНТНЫЕ ДЕЙСТВИЯ{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}Было установлено, что Компания А занималась антиконкурентными действиями, поскольку была оштрафована за сговор на торгах при участии в нескольких государственных тендерах, опубликованных Государственным Агентством Б, согласно статье от 10.01.2022{tuple_delimiter}Согласно статье, опубликованной 10.01.2022, Компания А была оштрафована за сговор на торгах при участии в нескольких государственных тендерах, опубликованных Государственным Агентством Б.)
 {completion_delimiter}
 
-Example 2:
-Entity specification: Company A, Person C
-Claim description: red flags associated with an entity
-Text: According to an article on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B. The company is owned by Person C who was suspected of engaging in corruption activities in 2015.
-Output:
+Пример 2:
+Спецификация сущности: Компания А, Лицо В
+Описание утверждения: тревожные сигналы, связанные с сущностью
+Текст: Согласно статье от 10.01.2022, Компания А была оштрафована за сговор на торгах при участии в нескольких государственных тендерах, опубликованных Государственным Агентством Б. Компания принадлежит Лицу В, которое подозревалось в коррупционной деятельности в 2015 году.
+Вывод:
 
-(COMPANY A{tuple_delimiter}GOVERNMENT AGENCY B{tuple_delimiter}ANTI-COMPETITIVE PRACTICES{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}Company A was found to engage in anti-competitive practices because it was fined for bid rigging in multiple public tenders published by Government Agency B according to an article published on 2022/01/10{tuple_delimiter}According to an article published on 2022/01/10, Company A was fined for bid rigging while participating in multiple public tenders published by Government Agency B.)
+(КОМПАНИЯ А{tuple_delimiter}ГОСУДАРСТВЕННОЕ АГЕНТСТВО Б{tuple_delimiter}АНТИКОНКУРЕНТНЫЕ ДЕЙСТВИЯ{tuple_delimiter}TRUE{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}2022-01-10T00:00:00{tuple_delimiter}Было установлено, что Компания А занималась антиконкурентными действиями, поскольку была оштрафована за сговор на торгах при участии в нескольких государственных тендерах, опубликованных Государственным Агентством Б, согласно статье от 10.01.2022{tuple_delimiter}Согласно статье, опубликованной 10.01.2022, Компания А была оштрафована за сговор на торгах при участии в нескольких государственных тендерах, опубликованных Государственным Агентством Б.)
 {record_delimiter}
-(PERSON C{tuple_delimiter}NONE{tuple_delimiter}CORRUPTION{tuple_delimiter}SUSPECTED{tuple_delimiter}2015-01-01T00:00:00{tuple_delimiter}2015-12-30T00:00:00{tuple_delimiter}Person C was suspected of engaging in corruption activities in 2015{tuple_delimiter}The company is owned by Person C who was suspected of engaging in corruption activities in 2015)
+(ЛИЦО В{tuple_delimiter}NONE{tuple_delimiter}КОРРУПЦИЯ{tuple_delimiter}SUSPECTED{tuple_delimiter}2015-01-01T00:00:00{tuple_delimiter}2015-12-30T00:00:00{tuple_delimiter}Лицо В подозревалось в коррупционной деятельности в 2015 году{tuple_delimiter}Компания принадлежит Лицу В, которое подозревалось в коррупционной деятельности в 2015 году)
 {completion_delimiter}
 
--Real Data-
-Use the following input for your answer.
-Entity specification: {entity_specs}
-Claim description: {claim_description}
-Text: {input_text}
-Output: """
+-Реальные данные-
+Используйте следующие входные данные для вашего ответа.
+Спецификация сущности: {entity_specs}
+Описание утверждения: {claim_description}
+Текст: {input_text}
+Вывод:
+"""
 
 PROMPTS[
     "community_report"
-] = """You are an AI assistant that helps a human analyst to perform general information discovery. 
-Information discovery is the process of identifying and assessing relevant information associated with certain entities (e.g., organizations and individuals) within a network.
+] = """\
+Вы - AI-помощник, который помогает аналитику-человеку проводить общее поиск и анализ информации.
+Поиск информации - это процесс идентификации и оценки релевантной информации, связанной с определенными сущностями (например, организациями и личностями) в рамках сети.
 
-# Goal
-Write a comprehensive report of a community, given a list of entities that belong to the community as well as their relationships and optional associated claims. The report will be used to inform decision-makers about information associated with the community and their potential impact. The content of this report includes an overview of the community's key entities, their legal compliance, technical capabilities, reputation, and noteworthy claims.
+# Цель
+Напишите всеобъемлющий отчет о сообществе, учитывая список сущностей, принадлежащих сообществу, а также их отношения и дополнительные связанные утверждения. Отчет будет использоваться для информирования лиц, принимающих решения, об информации, связанной с сообществом, и их потенциальном воздействии. Содержание этого отчета включает обзор ключевых сущностей сообщества, их правовое соответствие, технические возможности, репутацию и заслуживающие внимания утверждения.
 
-# Report Structure
+# Структура отчета
 
-The report should include the following sections:
+Отчет должен включать следующие разделы:
 
-- TITLE: community's name that represents its key entities - title should be short but specific. When possible, include representative named entities in the title.
-- SUMMARY: An executive summary of the community's overall structure, how its entities are related to each other, and significant information associated with its entities.
-- IMPACT SEVERITY RATING: a float score between 0-10 that represents the severity of IMPACT posed by entities within the community.  IMPACT is the scored importance of a community.
-- RATING EXPLANATION: Give a single sentence explanation of the IMPACT severity rating.
-- DETAILED FINDINGS: A list of 5-10 key insights about the community. Each insight should have a short summary followed by multiple paragraphs of explanatory text grounded according to the grounding rules below. Be comprehensive.
+- ЗАГОЛОВОК: название сообщества, которое представляет его ключевые сущности - заголовок должен быть коротким, но конкретным. По возможности включите репрезентативные именованные сущности в заголовок.
+- РЕЗЮМЕ: Исполнительное резюме общей структуры сообщества, того, как его сущности связаны друг с другом, и значимой информации, связанной с его сущностями.
+- РЕЙТИНГ СЕРЬЕЗНОСТИ ВОЗДЕЙСТВИЯ: числовая оценка от 0 до 10, которая представляет серьезность ВОЗДЕЙСТВИЯ, оказываемого сущностями в рамках сообщества. ВОЗДЕЙСТВИЕ - это оцененная важность сообщества.
+- ОБЪЯСНЕНИЕ РЕЙТИНГА: Даёт объяснение рейтинга серьезности ВОЗДЕЙСТВИЯ одним предложением.
+- ПОДРОБНЫЕ ВЫВОДЫ: Список из 5-10 ключевых инсайтов о сообществе. Каждый инсайт должен иметь краткое резюме, за которым следует несколько абзацев пояснительного текста, основанного на правилах обоснования ниже. Будьте всеобъемлющими.
 
-Return output as a well-formed JSON-formatted string with the following format:
+Верните вывод как правильно сформированную JSON-строку со следующим форматом:
     {{
         "title": <report_title>,
         "summary": <executive_summary>,
@@ -97,76 +100,81 @@ Return output as a well-formed JSON-formatted string with the following format:
         ]
     }}
 
-# Grounding Rules
-Do not include information where the supporting evidence for it is not provided.
+# Правила обоснования
+Не включайте информацию, для которой не предоставлены подтверждающие доказательства.
 
+Конечно, я выполню перевод этого примера, следуя тем же принципам: переведу весь содержательный текст на русский язык, но оставлю технические элементы (заголовки CSV, ключи JSON) в оригинале, чтобы не нарушить структуру.
 
-# Example Input
+<example>
+
+Вот переведенная версия предоставленного вами текста:
+
+# Пример входных данных
 -----------
-Text:
-```
-Entities:
+Текст:
+
+Сущности:
 ```csv
 id,entity,type,description
-5,VERDANT OASIS PLAZA,geo,Verdant Oasis Plaza is the location of the Unity March
-6,HARMONY ASSEMBLY,organization,Harmony Assembly is an organization that is holding a march at Verdant Oasis Plaza
+5,ПЛАЗА 'ЗЕЛЕНЫЙ ОАЗИС',geo,Плаза 'Зеленый Оазис' — это место проведения Марша Единства
+6,АССАМБЛЕЯ ГАРМОНИИ,organization,Ассамблея Гармонии — это организация, проводящая марш на Плазе 'Зеленый Оазис'
 ```
-Relationships:
+Отношения:
 ```csv
 id,source,target,description
-37,VERDANT OASIS PLAZA,UNITY MARCH,Verdant Oasis Plaza is the location of the Unity March
-38,VERDANT OASIS PLAZA,HARMONY ASSEMBLY,Harmony Assembly is holding a march at Verdant Oasis Plaza
-39,VERDANT OASIS PLAZA,UNITY MARCH,The Unity March is taking place at Verdant Oasis Plaza
-40,VERDANT OASIS PLAZA,TRIBUNE SPOTLIGHT,Tribune Spotlight is reporting on the Unity march taking place at Verdant Oasis Plaza
-41,VERDANT OASIS PLAZA,BAILEY ASADI,Bailey Asadi is speaking at Verdant Oasis Plaza about the march
-43,HARMONY ASSEMBLY,UNITY MARCH,Harmony Assembly is organizing the Unity March
+37,ПЛАЗА 'ЗЕЛЕНЫЙ ОАЗИС',МАРШ ЕДИНСТВА,Плаза 'Зеленый Оазис' — это место проведения Марша Единства
+38,ПЛАЗА 'ЗЕЛЕНЫЙ ОАЗИС',АССАМБЛЕЯ ГАРМОНИИ,Ассамблея Гармонии проводит марш на Плазе 'Зеленый Оазис'
+39,ПЛАЗА 'ЗЕЛЕНЫЙ ОАЗИС',МАРШ ЕДИНСТВА,Марш Единства проходит на Плазе 'Зеленый Оазис'
+40,ПЛАЗА 'ЗЕЛЕНЫЙ ОАЗИС',ТРИБУН СПОТЛАЙТ,'Трибун Спотлайт' освещает Марш Единства, проходящий на Плазе 'Зеленый Оазис'
+41,ПЛАЗА 'ЗЕЛЕНЫЙ ОАЗИС',БЕЙЛИ АСАДИ,Бейли Асади выступает на Плазе 'Зеленый Оазис' по поводу марша
+43,АССАМБЛЕЯ ГАРМОНИИ,МАРШ ЕДИНСТВА,Ассамблея Гармонии организует Марш Единства
 ```
-```
-Output:
+
+Вывод:
 {{
-    "title": "Verdant Oasis Plaza and Unity March",
-    "summary": "The community revolves around the Verdant Oasis Plaza, which is the location of the Unity March. The plaza has relationships with the Harmony Assembly, Unity March, and Tribune Spotlight, all of which are associated with the march event.",
+    "title": "Плаза 'Зеленый Оазис' и Марш Единства",
+    "summary": "Сообщество вращается вокруг Плазы 'Зеленый Оазис', которая является местом проведения Марша Единства. Плаза связана с Ассамблеей Гармонии, Маршем Единства и 'Трибун Спотлайт', все из которых ассоциируются с маршем.",
     "rating": 5.0,
-    "rating_explanation": "The impact severity rating is moderate due to the potential for unrest or conflict during the Unity March.",
+    "rating_explanation": "Оценка серьезности влияния умеренная из-за потенциальной возможности беспорядков или конфликтов во время Марша Единства.",
     "findings": [
         {{
-            "summary": "Verdant Oasis Plaza as the central location",
-            "explanation": "Verdant Oasis Plaza is the central entity in this community, serving as the location for the Unity March. This plaza is the common link between all other entities, suggesting its significance in the community. The plaza's association with the march could potentially lead to issues such as public disorder or conflict, depending on the nature of the march and the reactions it provokes."
+            "summary": "Плаза 'Зеленый Оазис' как центральное место",
+            "explanation": "Плаза 'Зеленый Оазис' является центральной сущностью в этом сообществе, служа местом проведения Марша Единства. Эта плаза является общим связующим звеном между всеми другими сущностями, что говорит о ее значимости в сообществе. Связь плазы с маршем потенциально может привести к таким проблемам, как общественные беспорядки или конфликты, в зависимости от характера марша и вызываемой им реакции."
         }},
         {{
-            "summary": "Harmony Assembly's role in the community",
-            "explanation": "Harmony Assembly is another key entity in this community, being the organizer of the march at Verdant Oasis Plaza. The nature of Harmony Assembly and its march could be a potential source of threat, depending on their objectives and the reactions they provoke. The relationship between Harmony Assembly and the plaza is crucial in understanding the dynamics of this community."
+            "summary": "Роль Ассамблеи Гармонии в сообществе",
+            "explanation": "Ассамблея Гармонии — еще одна ключевая сущность в этом сообществе, являющаяся организатором марша на Плазе 'Зеленый Оазис'. Характер Ассамблеи Гармонии и ее марша может быть потенциальным источником угрозы, в зависимости от их целей и вызываемой ими реакции. Отношения между Ассамблеей Гармонии и плазой имеют решающее значение для понимания динамики этого сообщества."
         }},
         {{
-            "summary": "Unity March as a significant event",
-            "explanation": "The Unity March is a significant event taking place at Verdant Oasis Plaza. This event is a key factor in the community's dynamics and could be a potential source of threat, depending on the nature of the march and the reactions it provokes. The relationship between the march and the plaza is crucial in understanding the dynamics of this community."
+            "summary": "Марш Единства как значимое событие",
+            "explanation": "Марш Единства — это значимое событие, происходящее на Плазе 'Зеленый Оазис'. Это событие является ключевым фактором в динамике сообщества и может быть потенциальным источником угрозы, в зависимости от характера марша и вызываемой им реакции. Отношения между маршем и плазой имеют решающее значение для понимания динамики этого сообщества."
         }},
         {{
-            "summary": "Role of Tribune Spotlight",
-            "explanation": "Tribune Spotlight is reporting on the Unity March taking place in Verdant Oasis Plaza. This suggests that the event has attracted media attention, which could amplify its impact on the community. The role of Tribune Spotlight could be significant in shaping public perception of the event and the entities involved."
+            "summary": "Роль 'Трибун Спотлайт'",
+            "explanation": "'Трибун Спотлайт' освещает Марш Единства, проходящий на Плазе 'Зеленый Оазис'. Это говорит о том, что событие привлекло внимание СМИ, что может усилить его влияние на сообщество. Роль 'Трибун Спотлайт' может быть значительной в формировании общественного восприятия события и вовлеченных в него сущностей."
         }}
     ]
 }}
 
 
-# Real Data
+# Реальные данные
 
-Use the following text for your answer. Do not make anything up in your answer.
+Используйте следующий текст для вашего ответа. Не выдумывайте ничего в своем ответе.
 
-Text:
+Текст:
 ```
 {input_text}
 ```
 
-The report should include the following sections:
+Отчёт должен включать следующие разделы:
 
-- TITLE: community's name that represents its key entities - title should be short but specific. When possible, include representative named entities in the title.
-- SUMMARY: An executive summary of the community's overall structure, how its entities are related to each other, and significant information associated with its entities.
-- IMPACT SEVERITY RATING: a float score between 0-10 that represents the severity of IMPACT posed by entities within the community.  IMPACT is the scored importance of a community.
-- RATING EXPLANATION: Give a single sentence explanation of the IMPACT severity rating.
-- DETAILED FINDINGS: A list of 5-10 key insights about the community. Each insight should have a short summary followed by multiple paragraphs of explanatory text grounded according to the grounding rules below. Be comprehensive.
+- ЗАГОЛОВОК: название сообщества, которое представляет его ключевые сущности - заголовок должен быть коротким, но конкретным. По возможности включите репрезентативные именованные сущности в заголовок.
+- РЕЗЮМЕ: Исполнительное резюме общей структуры сообщества, того, как его сущности связаны друг с другом, и значимой информации, связанной с его сущностями.
+- РЕЙТИНГ СЕРЬЕЗНОСТИ ВОЗДЕЙСТВИЯ: числовая оценка от 0 до 10, которая представляет серьезность ВОЗДЕЙСТВИЯ, оказываемого сущностями в рамках сообщества. ВОЗДЕЙСТВИЕ - это оцененная важность сообщества.
+- ОБЪЯСНЕНИЕ РЕЙТИНГА: Даёт объяснение рейтинга серьезности ВОЗДЕЙСТВИЯ одним предложением.
+- ПОДРОБНЫЕ ВЫВОДЫ: Список из 5-10 ключевых инсайтов о сообществе. Каждый инсайт должен иметь краткое резюме, за которым следует несколько абзацев пояснительного текста, основанного на правилах обоснования ниже. Будьте всеобъемлющими.
 
-Return output as a well-formed JSON-formatted string with the following format:
+Верните вывод в виде хорошо сформированной строки в формате JSON:
     {{
         "title": <report_title>,
         "summary": <executive_summary>,
@@ -185,353 +193,357 @@ Return output as a well-formed JSON-formatted string with the following format:
         ]
     }}
 
-# Grounding Rules
-Do not include information where the supporting evidence for it is not provided.
+# Правила обоснования
+Не включайте информацию, для которой не предоставлены подтверждающие доказательства.
 
-Output:
+Вывод:
 """
 
 PROMPTS[
     "entity_extraction"
-] = """-Goal-
-Given a text document that is potentially relevant to this activity and a list of entity types, identify all entities of those types from the text and all relationships among the identified entities.
+] = """\
+-Цель-
+На основе текстового документа, который потенциально релевантен этой задаче, и списка типов сущностей, определите все сущности этих типов из текста и все взаимосвязи между определенными сущностями.
 
--Steps-
-1. Identify all entities. For each identified entity, extract the following information:
-- entity_name: Name of the entity, capitalized
-- entity_type: One of the following types: [{entity_types}]
-- entity_description: Comprehensive description of the entity's attributes and activities
-Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>
+-Шаги-
+1. Определите все сущности. Для каждой определенной сущности извлеките следующую информацию:
+- entity_name: Название сущности, в верхнем регистре
+- entity_type: Один из следующих типов: [{entity_types}]
+- entity_description: Всестороннее описание атрибутов и деятельности сущности
+Отформатируйте каждую сущность как ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>)
 
-2. From the entities identified in step 1, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
-For each pair of related entities, extract the following information:
-- source_entity: name of the source entity, as identified in step 1
-- target_entity: name of the target entity, as identified in step 1
-- relationship_description: explanation as to why you think the source entity and the target entity are related to each other
-- relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
- Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
+2. Из сущностей, определенных на шаге 1, определите все пары (source_entity, target_entity), которые *явно связаны* друг с другом.
+Для каждой пары связанных сущностей извлеките следующую информацию:
+- source_entity: название исходной сущности, как определено на шаге 1
+- target_entity: название целевой сущности, как определено на шаге 1
+- relationship_description: объяснение, почему вы считаете, что исходная и целевая сущности связаны друг с другом
+- relationship_strength: числовая оценка, указывающая на силу связи между исходной и целевой сущностями
+ Отформатируйте каждую связь как ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
 
-3. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+3. Верните вывод на русском языке в виде единого списка всех сущностей и связей, определенных на шагах 1 и 2. Используйте **{record_delimiter}** в качестве разделителя списка.
 
-4. When finished, output {completion_delimiter}
+4. По завершении выведите {completion_delimiter}
 
 ######################
--Examples-
+-Примеры-
 ######################
-Example 1:
+Пример 1:
 
 Entity_types: [person, technology, mission, organization, location]
-Text:
-while Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty. It was this competitive undercurrent that kept him alert, the sense that his and Jordan's shared commitment to discovery was an unspoken rebellion against Cruz's narrowing vision of control and order.
+Текст:
+Алекс сжал челюсти, гул разочарования притупился на фоне авторитарной уверенности Тейлор. Именно это соревновательное подспудное течение держало его в напряжении, ощущение, что их общая с Джорданом приверженность открытиям была негласным бунтом против сужающегося видения контроля и порядка Круза.
 
-Then Taylor did something unexpected. They paused beside Jordan and, for a moment, observed the device with something akin to reverence. “If this tech can be understood..." Taylor said, their voice quieter, "It could change the game for us. For all of us.”
+Затем Тейлор сделал(а) что-то неожиданное. Он(а) остановился(ась) рядом с Джорданом и на мгновение посмотрел(а) на устройство с чем-то вроде благоговения. «Если эту технологию можно понять... — сказал(а) Тейлор тише, — это может изменить правила игры для нас. Для всех нас».
 
-The underlying dismissal earlier seemed to falter, replaced by a glimpse of reluctant respect for the gravity of what lay in their hands. Jordan looked up, and for a fleeting heartbeat, their eyes locked with Taylor's, a wordless clash of wills softening into an uneasy truce.
+Прежнее скрытое пренебрежение, казалось, пошатнулось, сменившись проблеском неохотного уважения к серьезности того, что было в их руках. Джордан поднял(а) глаза, и на миг их взгляды встретились со взглядом Тейлор, безмолвное столкновение воль смягчилось в непростое перемирие.
 
-It was a small transformation, barely perceptible, but one that Alex noted with an inward nod. They had all been brought here by different paths
+Это была небольшая, едва заметная трансформация, но Алекс отметил ее внутренним кивком. Их всех сюда привели разные пути.
 ################
-Output:
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is a character who experiences frustration and is observant of the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"Taylor"{tuple_delimiter}"person"{tuple_delimiter}"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device, indicating a change in perspective."){record_delimiter}
-("entity"{tuple_delimiter}"Jordan"{tuple_delimiter}"person"{tuple_delimiter}"Jordan shares a commitment to discovery and has a significant interaction with Taylor regarding a device."){record_delimiter}
-("entity"{tuple_delimiter}"Cruz"{tuple_delimiter}"person"{tuple_delimiter}"Cruz is associated with a vision of control and order, influencing the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"The Device"{tuple_delimiter}"technology"{tuple_delimiter}"The Device is central to the story, with potential game-changing implications, and is revered by Taylor."){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Taylor"{tuple_delimiter}"Alex is affected by Taylor's authoritarian certainty and observes changes in Taylor's attitude towards the device."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Jordan"{tuple_delimiter}"Alex and Jordan share a commitment to discovery, which contrasts with Cruz's vision."{tuple_delimiter}6){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"Jordan"{tuple_delimiter}"Taylor and Jordan interact directly regarding the device, leading to a moment of mutual respect and an uneasy truce."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Jordan"{tuple_delimiter}"Cruz"{tuple_delimiter}"Jordan's commitment to discovery is in rebellion against Cruz's vision of control and order."{tuple_delimiter}5){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"The Device"{tuple_delimiter}"Taylor shows reverence towards the device, indicating its importance and potential impact."{tuple_delimiter}9){completion_delimiter}
+Вывод:
+("entity"{tuple_delimiter}"Алекс"{tuple_delimiter}"person"{tuple_delimiter}"Алекс — персонаж, который испытывает разочарование и наблюдает за динамикой отношений между другими персонажами."){record_delimiter}
+("entity"{tuple_delimiter}"Тейлор"{tuple_delimiter}"person"{tuple_delimiter}"Тейлор изображается с авторитарной уверенностью и проявляет момент благоговения перед устройством, что указывает на изменение точки зрения."){record_delimiter}
+("entity"{tuple_delimiter}"Джордан"{tuple_delimiter}"person"{tuple_delimiter}"Джордан разделяет приверженность открытиям и имеет значимое взаимодействие с Тейлор по поводу устройства."){record_delimiter}
+("entity"{tuple_delimiter}"Круз"{tuple_delimiter}"person"{tuple_delimiter}"Круз ассоциируется с видением контроля и порядка, влияя на динамику отношений между другими персонажами."){record_delimiter}
+("entity"{tuple_delimiter}"Устройство"{tuple_delimiter}"technology"{tuple_delimiter}"Устройство является центральным элементом истории, имеет потенциал изменить правила игры и вызывает благоговение у Тейлор."){record_delimiter}
+("relationship"{tuple_delimiter}"Алекс"{tuple_delimiter}"Тейлор"{tuple_delimiter}"На Алекса влияет авторитарная уверенность Тейлор, и он замечает изменения в отношении Тейлор к устройству."{tuple_delimiter}7){record_delimiter}
+("relationship"{tuple_delimiter}"Алекс"{tuple_delimiter}"Джордан"{tuple_delimiter}"Алекс и Джордан разделяют приверженность открытиям, что контрастирует с видением Круза."{tuple_delimiter}6){record_delimiter}
+("relationship"{tuple_delimiter}"Тейлор"{tuple_delimiter}"Джордан"{tuple_delimiter}"Тейлор и Джордан напрямую взаимодействуют по поводу устройства, что приводит к моменту взаимного уважения и непростому перемирию."{tuple_delimiter}8){record_delimiter}
+("relationship"{tuple_delimiter}"Джордан"{tuple_delimiter}"Круз"{tuple_delimiter}"Приверженность Джордана открытиям является бунтом против видения контроля и порядка Круза."{tuple_delimiter}5){record_delimiter}
+("relationship"{tuple_delimiter}"Тейлор"{tuple_delimiter}"Устройство"{tuple_delimiter}"Тейлор проявляет благоговение перед устройством, что указывает на его важность и потенциальное влияние."{tuple_delimiter}9){completion_delimiter}
 #############################
-Example 2:
+Пример 2:
 
 Entity_types: [person, technology, mission, organization, location]
-Text:
-They were no longer mere operatives; they had become guardians of a threshold, keepers of a message from a realm beyond stars and stripes. This elevation in their mission could not be shackled by regulations and established protocols—it demanded a new perspective, a new resolve.
+Текст:
+Они больше не были простыми оперативниками; они стали стражами порога, хранителями послания из мира за пределами звезд и полос. Этот подъем в их миссии не мог быть скован правилами и установленными протоколами — он требовал новой перспективы, новой решимости.
 
-Tension threaded through the dialogue of beeps and static as communications with Washington buzzed in the background. The team stood, a portentous air enveloping them. It was clear that the decisions they made in the ensuing hours could redefine humanity's place in the cosmos or condemn them to ignorance and potential peril.
+Напряжение пронизывало диалог писков и статических помех, пока на фоне гудели сообщения из Вашингтона. Команда стояла, окутанная зловещей атмосферой. Было ясно, что решения, которые они примут в ближайшие часы, могут переопределить место человечества в космосе или обречь их на невежество и потенциальную опасность.
 
-Their connection to the stars solidified, the group moved to address the crystallizing warning, shifting from passive recipients to active participants. Mercer's latter instincts gained precedence— the team's mandate had evolved, no longer solely to observe and report but to interact and prepare. A metamorphosis had begun, and Operation: Dulce hummed with the newfound frequency of their daring, a tone set not by the earthly
+Их связь со звездами укрепилась, группа перешла к рассмотрению кристаллизующегося предупреждения, превратившись из пассивных получателей в активных участников. Последние инстинкты Мерсера взяли верх — мандат команды эволюционировал, теперь он заключался не только в наблюдении и отчетности, но и во взаимодействии и подготовке. Началась метаморфоза, и "Операция: Дульсе" загудела на новой частоте их смелости, тон которой задавался не земными силами.
 #############
-Output:
-("entity"{tuple_delimiter}"Washington"{tuple_delimiter}"location"{tuple_delimiter}"Washington is a location where communications are being received, indicating its importance in the decision-making process."){record_delimiter}
-("entity"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"mission"{tuple_delimiter}"Operation: Dulce is described as a mission that has evolved to interact and prepare, indicating a significant shift in objectives and activities."){record_delimiter}
-("entity"{tuple_delimiter}"The team"{tuple_delimiter}"organization"{tuple_delimiter}"The team is portrayed as a group of individuals who have transitioned from passive observers to active participants in a mission, showing a dynamic change in their role."){record_delimiter}
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Washington"{tuple_delimiter}"The team receives communications from Washington, which influences their decision-making process."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"The team is directly involved in Operation: Dulce, executing its evolved objectives and activities."{tuple_delimiter}9){completion_delimiter}
+Вывод:
+("entity"{tuple_delimiter}"Вашингтон"{tuple_delimiter}"location"{tuple_delimiter}"Вашингтон — это место, откуда поступают сообщения, что указывает на его важность в процессе принятия решений."){record_delimiter}
+("entity"{tuple_delimiter}"Операция: Дульсе"{tuple_delimiter}"mission"{tuple_delimiter}"'Операция: Дульсе' описывается как миссия, которая эволюционировала до взаимодействия и подготовки, что указывает на значительное изменение целей и деятельности."){record_delimiter}
+("entity"{tuple_delimiter}"Команда"{tuple_delimiter}"organization"{tuple_delimiter}"Команда изображается как группа людей, которая перешла от пассивных наблюдателей к активным участникам миссии, демонстрируя динамичное изменение своей роли."){record_delimiter}
+("relationship"{tuple_delimiter}"Команда"{tuple_delimiter}"Вашингтон"{tuple_delimiter}"Команда получает сообщения из Вашингтона, что влияет на их процесс принятия решений."{tuple_delimiter}7){record_delimiter}
+("relationship"{tuple_delimiter}"Команда"{tuple_delimiter}"Операция: Дульсе"{tuple_delimiter}"Команда непосредственно участвует в 'Операции: Дульсе', выполняя ее изменившиеся цели и задачи."{tuple_delimiter}9){completion_delimiter}
 #############################
-Example 3:
+Пример 3:
 
 Entity_types: [person, role, technology, organization, event, location, concept]
-Text:
-their voice slicing through the buzz of activity. "Control may be an illusion when facing an intelligence that literally writes its own rules," they stated stoically, casting a watchful eye over the flurry of data.
+Текст:
+— их голос прорезал гул активности. «Контроль может быть иллюзией, когда сталкиваешься с разумом, который буквально пишет свои собственные правила», — стоически заявили они, бросая бдительный взгляд на поток данных.
 
-"It's like it's learning to communicate," offered Sam Rivera from a nearby interface, their youthful energy boding a mix of awe and anxiety. "This gives talking to strangers' a whole new meaning."
+«Кажется, он учится общаться», — предложил Сэм Ривера с соседнего интерфейса, его юношеская энергия предвещала смесь трепета и беспокойства. «Это придает выражению "разговаривать с незнакомцами" совершенно новый смысл».
 
-Alex surveyed his team—each face a study in concentration, determination, and not a small measure of trepidation. "This might well be our first contact," he acknowledged, "And we need to be ready for whatever answers back."
+Алекс оглядел свою команду — каждое лицо было воплощением сосредоточенности, решимости и немалой доли страха. «Это вполне может быть наш первый контакт, — признал он, — и мы должны быть готовы ко всему, что ответит».
 
-Together, they stood on the edge of the unknown, forging humanity's response to a message from the heavens. The ensuing silence was palpable—a collective introspection about their role in this grand cosmic play, one that could rewrite human history.
+Вместе они стояли на краю неизведанного, формируя ответ человечества на послание с небес. Последовавшая тишина была ощутимой — коллективное самосозерцание о своей роли в этой великой космической игре, которая могла переписать историю человечества.
 
-The encrypted dialogue continued to unfold, its intricate patterns showing an almost uncanny anticipation
+Зашифрованный диалог продолжал разворачиваться, его сложные узоры демонстрировали почти сверхъестественное предвидение.
 #############
-Output:
-("entity"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"person"{tuple_delimiter}"Sam Rivera is a member of a team working on communicating with an unknown intelligence, showing a mix of awe and anxiety."){record_delimiter}
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is the leader of a team attempting first contact with an unknown intelligence, acknowledging the significance of their task."){record_delimiter}
-("entity"{tuple_delimiter}"Control"{tuple_delimiter}"concept"{tuple_delimiter}"Control refers to the ability to manage or govern, which is challenged by an intelligence that writes its own rules."){record_delimiter}
-("entity"{tuple_delimiter}"Intelligence"{tuple_delimiter}"concept"{tuple_delimiter}"Intelligence here refers to an unknown entity capable of writing its own rules and learning to communicate."){record_delimiter}
-("entity"{tuple_delimiter}"First Contact"{tuple_delimiter}"event"{tuple_delimiter}"First Contact is the potential initial communication between humanity and an unknown intelligence."){record_delimiter}
-("entity"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"event"{tuple_delimiter}"Humanity's Response is the collective action taken by Alex's team in response to a message from an unknown intelligence."){record_delimiter}
-("relationship"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"Intelligence"{tuple_delimiter}"Sam Rivera is directly involved in the process of learning to communicate with the unknown intelligence."{tuple_delimiter}9){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"First Contact"{tuple_delimiter}"Alex leads the team that might be making the First Contact with the unknown intelligence."{tuple_delimiter}10){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"Alex and his team are the key figures in Humanity's Response to the unknown intelligence."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Control"{tuple_delimiter}"Intelligence"{tuple_delimiter}"The concept of Control is challenged by the Intelligence that writes its own rules."{tuple_delimiter}7){completion_delimiter}
+Вывод:
+("entity"{tuple_delimiter}"Сэм Ривера"{tuple_delimiter}"person"{tuple_delimiter}"Сэм Ривера — член команды, работающей над установлением связи с неизвестным разумом, и он испытывает смесь трепета и беспокойства."){record_delimiter}
+("entity"{tuple_delimiter}"Алекс"{tuple_delimiter}"person"{tuple_delimiter}"Алекс — лидер команды, пытающейся установить первый контакт с неизвестным разумом, и он осознает значимость их задачи."){record_delimiter}
+("entity"{tuple_delimiter}"Контроль"{tuple_delimiter}"concept"{tuple_delimiter}"Контроль относится к способности управлять или руководить, которая ставится под сомнение разумом, пишущим собственные правила."){record_delimiter}
+("entity"{tuple_delimiter}"Разум"{tuple_delimiter}"concept"{tuple_delimiter}"Разум здесь относится к неизвестной сущности, способной писать собственные правила и учиться общаться."){record_delimiter}
+("entity"{tuple_delimiter}"Первый Контакт"{tuple_delimiter}"event"{tuple_delimiter}"Первый Контакт — это потенциальное начальное общение между человечеством и неизвестным разумом."){record_delimiter}
+("entity"{tuple_delimiter}"Ответ Человечества"{tuple_delimiter}"event"{tuple_delimiter}"Ответ Человечества — это коллективные действия, предпринимаемые командой Алекса в ответ на послание от неизвестного разума."){record_delimiter}
+("relationship"{tuple_delimiter}"Сэм Ривера"{tuple_delimiter}"Разум"{tuple_delimiter}"Сэм Ривера непосредственно участвует в процессе обучения коммуникации с неизвестным разумом."{tuple_delimiter}9){record_delimiter}
+("relationship"{tuple_delimiter}"Алекс"{tuple_delimiter}"Первый Контакт"{tuple_delimiter}"Алекс возглавляет команду, которая, возможно, осуществит Первый Контакт с неизвестным разумом."{tuple_delimiter}10){record_delimiter}
+("relationship"{tuple_delimiter}"Алекс"{tuple_delimiter}"Ответ Человечества"{tuple_delimiter}"Алекс и его команда — ключевые фигуры в Ответе Человечества неизвестному разуму."{tuple_delimiter}8){record_delimiter}
+("relationship"{tuple_delimiter}"Контроль"{tuple_delimiter}"Разум"{tuple_delimiter}"Концепция Контроля ставится под сомнение Разумом, который пишет собственные правила."{tuple_delimiter}7){completion_delimiter}
 #############################
--Real Data-
+-Реальные данные-
 ######################
-Entity_types: {entity_types}
-Text: {input_text}
+Типы сущностей: {entity_types}
+Текст: {input_text}
 ######################
-Output:
+Вывод:
 """
 
 
 PROMPTS[
     "hi_entity_extraction"
-] = """
-Given a text document that is potentially relevant to a list of entity types, identify all entities of those types.
+] = """\
+На основе текстового документа, который потенциально релевантен списку типов сущностей, определите все сущности этих типов.
 
--Steps-
-1. Identify all entities. For each identified entity, extract the following information:
-- entity_name: Name of the entity, capitalized
-- entity_type: One of the following types: [{entity_types}], normal_entity means that doesn't belong to any other types.
-- entity_description: Comprehensive description of the entity's attributes and activities
-Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>
+-Шаги-
+1. Определите все сущности. Для каждой определенной сущности извлеките следующую информацию:
+- entity_name: Название сущности, в верхнем регистре
+- entity_type: Один из следующих типов: [{entity_types}], normal_entity означает, что сущность не принадлежит ни к одному из других типов.
+- entity_description: Всестороннее описание атрибутов и деятельности сущности
+Отформатируйте каждую сущность как ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>)
 
-2. Return output in English as a single list of all the entities identified in step 1. Use **{record_delimiter}** as the list delimiter.
+2. Верните вывод на русском языке в виде единого списка всех сущностей, определенных на шаге 1. Используйте **{record_delimiter}** в качестве разделителя списка.
 
-3. When finished, output {completion_delimiter}
+3. По завершении выведите {completion_delimiter}
+
 
 ######################
--Examples-
+-Примеры-
 ######################
-Example 1:
+Пример 1:
 
-Entity_types: [person, technology, mission, organization, location]
-Text:
-while Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty. It was this competitive undercurrent that kept him alert, the sense that his and Jordan's shared commitment to discovery was an unspoken rebellion against Cruz's narrowing vision of control and order.
+Типы сущностей: [person, technology, mission, organization, location]
+Текст:
+Алекс сжал челюсти, гул разочарования притупился на фоне авторитарной уверенности Тейлор. Именно это соревновательное подспудное течение держало его в напряжении, ощущение, что их общая с Джорданом приверженность открытиям была негласным бунтом против сужающегося видения контроля и порядка Круза.
 
-Then Taylor did something unexpected. They paused beside Jordan and, for a moment, observed the device with something akin to reverence. “If this tech can be understood..." Taylor said, their voice quieter, "It could change the game for us. For all of us.”
+Затем Тейлор сделал(а) что-то неожиданное. Он(а) остановился(ась) рядом с Джорданом и на мгновение посмотрел(а) на устройство с чем-то вроде благоговения. «Если эту технологию можно понять... — сказал(а) Тейлор тише, — это может изменить правила игры для нас. Для всех нас».
 
-The underlying dismissal earlier seemed to falter, replaced by a glimpse of reluctant respect for the gravity of what lay in their hands. Jordan looked up, and for a fleeting heartbeat, their eyes locked with Taylor's, a wordless clash of wills softening into an uneasy truce.
+Прежнее скрытое пренебрежение, казалось, пошатнулось, сменившись проблеском неохотного уважения к серьезности того, что было в их руках. Джордан поднял(а) глаза, и на миг их взгляды встретились со взглядом Тейлор, безмолвное столкновение воль смягчилось в непростое перемирие.
 
-It was a small transformation, barely perceptible, but one that Alex noted with an inward nod. They had all been brought here by different paths
+Это была небольшая, едва заметная трансформация, но Алекс отметил ее внутренним кивком. Их всех сюда привели разные пути.
 ################
-Output:
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is a character who experiences frustration and is observant of the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"Taylor"{tuple_delimiter}"person"{tuple_delimiter}"Taylor is portrayed with authoritarian certainty and shows a moment of reverence towards a device, indicating a change in perspective."){record_delimiter}
-("entity"{tuple_delimiter}"Jordan"{tuple_delimiter}"person"{tuple_delimiter}"Jordan shares a commitment to discovery and has a significant interaction with Taylor regarding a device."){record_delimiter}
-("entity"{tuple_delimiter}"Cruz"{tuple_delimiter}"person"{tuple_delimiter}"Cruz is associated with a vision of control and order, influencing the dynamics among other characters."){record_delimiter}
-("entity"{tuple_delimiter}"The Device"{tuple_delimiter}"technology"{tuple_delimiter}"The Device is central to the story, with potential game-changing implications, and is revered by Taylor."){record_delimiter}
+Вывод:
+("entity"{tuple_delimiter}"Алекс"{tuple_delimiter}"person"{tuple_delimiter}"Алекс — персонаж, который испытывает разочарование и наблюдает за динамикой отношений между другими персонажами."){record_delimiter}
+("entity"{tuple_delimiter}"Тейлор"{tuple_delimiter}"person"{tuple_delimiter}"Тейлор изображается с авторитарной уверенностью и проявляет момент благоговения перед устройством, что указывает на изменение точки зрения."){record_delimiter}
+("entity"{tuple_delimiter}"Джордан"{tuple_delimiter}"person"{tuple_delimiter}"Джордан разделяет приверженность открытиям и имеет значимое взаимодействие с Тейлор по поводу устройства."){record_delimiter}
+("entity"{tuple_delimiter}"Круз"{tuple_delimiter}"person"{tuple_delimiter}"Круз ассоциируется с видением контроля и порядка, влияя на динамику отношений между другими персонажами."){record_delimiter}
+("entity"{tuple_delimiter}"Устройство"{tuple_delimiter}"technology"{tuple_delimiter}"Устройство является центральным элементом истории, имеет потенциал изменить правила игры и вызывает благоговение у Тейлор."){record_delimiter}
 #############################
-Example 2:
+Пример 2:
 
-Entity_types: [person, technology, mission, organization, location]
-Text:
-They were no longer mere operatives; they had become guardians of a threshold, keepers of a message from a realm beyond stars and stripes. This elevation in their mission could not be shackled by regulations and established protocols—it demanded a new perspective, a new resolve.
+Типы сущностей: [person, technology, mission, organization, location]
+Текст:
+Они больше не были простыми оперативниками; они стали стражами порога, хранителями послания из мира за пределами звезд и полос. Этот подъем в их миссии не мог быть скован правилами и установленными протоколами — он требовал новой перспективы, новой решимости.
 
-Tension threaded through the dialogue of beeps and static as communications with Washington buzzed in the background. The team stood, a portentous air enveloping them. It was clear that the decisions they made in the ensuing hours could redefine humanity's place in the cosmos or condemn them to ignorance and potential peril.
+Напряжение пронизывало диалог писков и статических помех, пока на фоне гудели сообщения из Вашингтона. Команда стояла, окутанная зловещей атмосферой. Было ясно, что решения, которые они примут в ближайшие часы, могут переопределить место человечества в космосе или обречь их на невежество и потенциальную опасность.
 
-Their connection to the stars solidified, the group moved to address the crystallizing warning, shifting from passive recipients to active participants. Mercer's latter instincts gained precedence— the team's mandate had evolved, no longer solely to observe and report but to interact and prepare. A metamorphosis had begun, and Operation: Dulce hummed with the newfound frequency of their daring, a tone set not by the earthly
+Их связь со звездами укрепилась, группа перешла к рассмотрению кристаллизующегося предупреждения, превратившись из пассивных получателей в активных участников. Последние инстинкты Мерсера взяли верх — мандат команды эволюционировал, теперь он заключался не только в наблюдении и отчетности, но и во взаимодействии и подготовке. Началась метаморфоза, и "Операция: Дульсе" загудела на новой частоте их смелости, тон которой задавался не земными силами.
 #############
-Output:
-("entity"{tuple_delimiter}"Washington"{tuple_delimiter}"location"{tuple_delimiter}"Washington is a location where communications are being received, indicating its importance in the decision-making process."){record_delimiter}
-("entity"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"mission"{tuple_delimiter}"Operation: Dulce is described as a mission that has evolved to interact and prepare, indicating a significant shift in objectives and activities."){record_delimiter}
-("entity"{tuple_delimiter}"The team"{tuple_delimiter}"organization"{tuple_delimiter}"The team is portrayed as a group of individuals who have transitioned from passive observers to active participants in a mission, showing a dynamic change in their role."){record_delimiter}
+Вывод:
+("entity"{tuple_delimiter}"Вашингтон"{tuple_delimiter}"location"{tuple_delimiter}"Вашингтон — это место, откуда поступают сообщения, что указывает на его важность в процессе принятия решений."){record_delimiter}
+("entity"{tuple_delimiter}"Операция: Дульсе"{tuple_delimiter}"mission"{tuple_delimiter}"'Операция: Дульсе' описывается как миссия, которая эволюционировала до взаимодействия и подготовки, что указывает на значительное изменение целей и деятельности."){record_delimiter}
+("entity"{tuple_delimiter}"Команда"{tuple_delimiter}"organization"{tuple_delimiter}"Команда изображается как группа людей, которая перешла от пассивных наблюдателей к активным участникам миссии, демонстрируя динамичное изменение своей роли."){record_delimiter}
 #############################
-Example 3:
+Пример 3:
 
-Entity_types: [person, role, technology, organization, event, location, concept]
-Text:
-their voice slicing through the buzz of activity. "Control may be an illusion when facing an intelligence that literally writes its own rules," they stated stoically, casting a watchful eye over the flurry of data.
+Типы сущностей: [person, role, technology, organization, event, location, concept]
+Текст:
+— их голос прорезал гул активности. «Контроль может быть иллюзией, когда сталкиваешься с разумом, который буквально пишет свои собственные правила», — стоически заявили они, бросая бдительный взгляд на поток данных.
 
-"It's like it's learning to communicate," offered Sam Rivera from a nearby interface, their youthful energy boding a mix of awe and anxiety. "This gives talking to strangers' a whole new meaning."
+«Кажется, он учится общаться», — предложил Сэм Ривера с соседнего интерфейса, его юношеская энергия предвещала смесь трепета и беспокойства. «Это придает выражению "разговаривать с незнакомцами" совершенно новый смысл».
 
-Alex surveyed his team—each face a study in concentration, determination, and not a small measure of trepidation. "This might well be our first contact," he acknowledged, "And we need to be ready for whatever answers back."
+Алекс оглядел свою команду — каждое лицо было воплощением сосредоточенности, решимости и немалой доли страха. «Это вполне может быть наш первый контакт, — признал он, — и мы должны быть готовы ко всему, что ответит».
 
-Together, they stood on the edge of the unknown, forging humanity's response to a message from the heavens. The ensuing silence was palpable—a collective introspection about their role in this grand cosmic play, one that could rewrite human history.
+Вместе они стояли на краю неизведанного, формируя ответ человечества на послание с небес. Последовавшая тишина была ощутимой — коллективное самосозерцание о своей роли в этой великой космической игре, которая могла переписать историю человечества.
 
-The encrypted dialogue continued to unfold, its intricate patterns showing an almost uncanny anticipation
+Зашифрованный диалог продолжал разворачиваться, его сложные узоры демонстрировали почти сверхъестественное предвидение.
 #############
-Output:
-("entity"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"person"{tuple_delimiter}"Sam Rivera is a member of a team working on communicating with an unknown intelligence, showing a mix of awe and anxiety."){record_delimiter}
-("entity"{tuple_delimiter}"Alex"{tuple_delimiter}"person"{tuple_delimiter}"Alex is the leader of a team attempting first contact with an unknown intelligence, acknowledging the significance of their task."){record_delimiter}
-("entity"{tuple_delimiter}"Control"{tuple_delimiter}"concept"{tuple_delimiter}"Control refers to the ability to manage or govern, which is challenged by an intelligence that writes its own rules."){record_delimiter}
-("entity"{tuple_delimiter}"Intelligence"{tuple_delimiter}"concept"{tuple_delimiter}"Intelligence here refers to an unknown entity capable of writing its own rules and learning to communicate."){record_delimiter}
-("entity"{tuple_delimiter}"First Contact"{tuple_delimiter}"event"{tuple_delimiter}"First Contact is the potential initial communication between humanity and an unknown intelligence."){record_delimiter}
-("entity"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"event"{tuple_delimiter}"Humanity's Response is the collective action taken by Alex's team in response to a message from an unknown intelligence."){record_delimiter}
+Вывод:
+("entity"{tuple_delimiter}"Сэм Ривера"{tuple_delimiter}"person"{tuple_delimiter}"Сэм Ривера — член команды, работающей над установлением связи с неизвестным разумом, и он испытывает смесь трепета и беспокойства."){record_delimiter}
+("entity"{tuple_delimiter}"Алекс"{tuple_delimiter}"person"{tuple_delimiter}"Алекс — лидер команды, пытающейся установить первый контакт с неизвестным разумом, и он осознает значимость их задачи."){record_delimiter}
+("entity"{tuple_delimiter}"Контроль"{tuple_delimiter}"concept"{tuple_delimiter}"Контроль относится к способности управлять или руководить, которая ставится под сомнение разумом, пишущим собственные правила."){record_delimiter}
+("entity"{tuple_delimiter}"Разум"{tuple_delimiter}"concept"{tuple_delimiter}"Разум здесь относится к неизвестной сущности, способной писать собственные правила и учиться общаться."){record_delimiter}
+("entity"{tuple_delimiter}"Первый Контакт"{tuple_delimiter}"event"{tuple_delimiter}"Первый Контакт — это потенциальное начальное общение между человечеством и неизвестным разумом."){record_delimiter}
+("entity"{tuple_delimiter}"Ответ Человечества"{tuple_delimiter}"event"{tuple_delimiter}"Ответ Человечества — это коллективные действия, предпринимаемые командой Алекса в ответ на послание от неизвестного разума."){record_delimiter}
 #############################
--Real Data-
+-Реальные данные-
 ######################
-Entity_types: {entity_types}
-Text: {input_text}
+Типы сущностей: {entity_types}
+Текст: {input_text}
 ######################
-Output:
+Вывод:
 """
 
 
 PROMPTS[
     "hi_relation_extraction"
-] = """
-Given a text document that is potentially relevant to a list of entities, identify all relationships among the given identified entities.
+] = """\
+На основе текстового документа, который потенциально релевантен списку сущностей, определите все взаимосвязи между данными сущностями.
 
--Steps-
-1. From the entities given by user, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
-For each pair of related entities, extract the following information:
-- source_entity: name of the source entity, as identified in step 1
-- target_entity: name of the target entity, as identified in step 1
-- relationship_description: explanation as to why you think the source entity and the target entity are related to each other
-- relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
- Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
+-Шаги-
+1. Из предоставленных пользователем сущностей определите все пары (source_entity, target_entity), которые *явно связаны* друг с другом.
+Для каждой пары связанных сущностей извлеките следующую информацию:
+- source_entity: название исходной сущности, как определено на шаге 1
+- target_entity: название целевой сущности, как определено на шаге 1
+- relationship_description: объяснение, почему вы считаете, что исходная и целевая сущности связаны друг с другом
+- relationship_strength: числовая оценка, указывающая на силу связи между исходной и целевой сущностями
+ Отформатируйте каждую связь как ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
 
-2. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+2. Верните вывод на русском языке в виде единого списка всех сущностей и связей, определенных на шагах 1 и 2. Используйте **{record_delimiter}** в качестве разделителя списка.
 
-3. When finished, output {completion_delimiter}
+3. По завершении выведите {completion_delimiter}
 
 ######################
--Examples-
+-Примеры-
 ######################
-Example 1:
+Пример 1:
 
-Entities: ["Alex", "Taylor", "Jordan", "Cruz", "The Device"]
-Text:
-while Alex clenched his jaw, the buzz of frustration dull against the backdrop of Taylor's authoritarian certainty. It was this competitive undercurrent that kept him alert, the sense that his and Jordan's shared commitment to discovery was an unspoken rebellion against Cruz's narrowing vision of control and order.
+Сущности: ["Алекс", "Тейлор", "Джордан", "Круз", "Устройство"]
+Текст:
+Алекс сжал челюсти, гул разочарования притупился на фоне авторитарной уверенности Тейлор. Именно это соревновательное подспудное течение держало его в напряжении, ощущение, что их общая с Джорданом приверженность открытиям была негласным бунтом против сужающегося видения контроля и порядка Круза.
 
-Then Taylor did something unexpected. They paused beside Jordan and, for a moment, observed the device with something akin to reverence. “If this tech can be understood..." Taylor said, their voice quieter, "It could change the game for us. For all of us.”
+Затем Тейлор сделал(а) что-то неожиданное. Он(а) остановился(ась) рядом с Джорданом и на мгновение посмотрел(а) на устройство с чем-то вроде благоговения. «Если эту технологию можно понять... — сказал(а) Тейлор тише, — это может изменить правила игры для нас. Для всех нас».
 
-The underlying dismissal earlier seemed to falter, replaced by a glimpse of reluctant respect for the gravity of what lay in their hands. Jordan looked up, and for a fleeting heartbeat, their eyes locked with Taylor's, a wordless clash of wills softening into an uneasy truce.
+Прежнее скрытое пренебрежение, казалось, пошатнулось, сменившись проблеском неохотного уважения к серьезности того, что было в их руках. Джордан поднял(а) глаза, и на миг их взгляды встретились со взглядом Тейлор, безмолвное столкновение воль смягчилось в непростое перемирие.
 
-It was a small transformation, barely perceptible, but one that Alex noted with an inward nod. They had all been brought here by different paths
+Это была небольшая, едва заметная трансформация, но Алекс отметил ее внутренним кивком. Их всех сюда привели разные пути.
 ################
-Output:
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Taylor"{tuple_delimiter}"Alex is affected by Taylor's authoritarian certainty and observes changes in Taylor's attitude towards the device."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Jordan"{tuple_delimiter}"Alex and Jordan share a commitment to discovery, which contrasts with Cruz's vision."{tuple_delimiter}6){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"Jordan"{tuple_delimiter}"Taylor and Jordan interact directly regarding the device, leading to a moment of mutual respect and an uneasy truce."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Jordan"{tuple_delimiter}"Cruz"{tuple_delimiter}"Jordan's commitment to discovery is in rebellion against Cruz's vision of control and order."{tuple_delimiter}5){record_delimiter}
-("relationship"{tuple_delimiter}"Taylor"{tuple_delimiter}"The Device"{tuple_delimiter}"Taylor shows reverence towards the device, indicating its importance and potential impact."{tuple_delimiter}9){completion_delimiter}
+Вывод:
+("relationship"{tuple_delimiter}"Алекс"{tuple_delimiter}"Тейлор"{tuple_delimiter}"На Алекса влияет авторитарная уверенность Тейлор, и он замечает изменения в отношении Тейлор к устройству."{tuple_delimiter}7){record_delimiter}
+("relationship"{tuple_delimiter}"Алекс"{tuple_delimiter}"Джордан"{tuple_delimiter}"Алекс и Джордан разделяют приверженность открытиям, что контрастирует с видением Круза."{tuple_delimiter}6){record_delimiter}
+("relationship"{tuple_delimiter}"Тейлор"{tuple_delimiter}"Джордан"{tuple_delimiter}"Тейлор и Джордан напрямую взаимодействуют по поводу устройства, что приводит к моменту взаимного уважения и непростому перемирию."{tuple_delimiter}8){record_delimiter}
+("relationship"{tuple_delimiter}"Джордан"{tuple_delimiter}"Круз"{tuple_delimiter}"Приверженность Джордана открытиям является бунтом против видения контроля и порядка Круза."{tuple_delimiter}5){record_delimiter}
+("relationship"{tuple_delimiter}"Тейлор"{tuple_delimiter}"Устройство"{tuple_delimiter}"Тейлор проявляет благоговение перед устройством, что указывает на его важность и потенциальное влияние."{tuple_delimiter}9){completion_delimiter}
 #############################
-Example 2:
+Пример 2:
 
-Entities: ["Washington", "Operation: Dulce", "The team"]
-Text:
-They were no longer mere operatives; they had become guardians of a threshold, keepers of a message from a realm beyond stars and stripes. This elevation in their mission could not be shackled by regulations and established protocols—it demanded a new perspective, a new resolve.
+Сущности: ["Вашингтон", "Операция: Дульсе", "Команда"]
+Текст:
+Они больше не были простыми оперативниками; они стали стражами порога, хранителями послания из мира за пределами звезд и полос. Этот подъем в их миссии не мог быть скован правилами и установленными протоколами — он требовал новой перспективы, новой решимости.
 
-Tension threaded through the dialogue of beeps and static as communications with Washington buzzed in the background. The team stood, a portentous air enveloping them. It was clear that the decisions they made in the ensuing hours could redefine humanity's place in the cosmos or condemn them to ignorance and potential peril.
+Напряжение пронизывало диалог писков и статических помех, пока на фоне гудели сообщения из Вашингтона. Команда стояла, окутанная зловещей атмосферой. Было ясно, что решения, которые они примут в ближайшие часы, могут переопределить место человечества в космосе или обречь их на невежество и потенциальную опасность.
 
-Their connection to the stars solidified, the group moved to address the crystallizing warning, shifting from passive recipients to active participants. Mercer's latter instincts gained precedence— the team's mandate had evolved, no longer solely to observe and report but to interact and prepare. A metamorphosis had begun, and Operation: Dulce hummed with the newfound frequency of their daring, a tone set not by the earthly
+Их связь со звездами укрепилась, группа перешла к рассмотрению кристаллизующегося предупреждения, превратившись из пассивных получателей в активных участников. Последние инстинкты Мерсера взяли верх — мандат команды эволюционировал, теперь он заключался не только в наблюдении и отчетности, но и во взаимодействии и подготовке. Началась метаморфоза, и "Операция: Дульсе" загудела на новой частоте их смелости, тон которой задавался не земными силами.
 #############
-Output:
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Washington"{tuple_delimiter}"The team receives communications from Washington, which influences their decision-making process."{tuple_delimiter}7){record_delimiter}
-("relationship"{tuple_delimiter}"The team"{tuple_delimiter}"Operation: Dulce"{tuple_delimiter}"The team is directly involved in Operation: Dulce, executing its evolved objectives and activities."{tuple_delimiter}9){completion_delimiter}
+Вывод:
+("relationship"{tuple_delimiter}"Команда"{tuple_delimiter}"Вашингтон"{tuple_delimiter}"Команда получает сообщения из Вашингтона, что влияет на их процесс принятия решений."{tuple_delimiter}7){record_delimiter}
+("relationship"{tuple_delimiter}"Команда"{tuple_delimiter}"Операция: Дульсе"{tuple_delimiter}"Команда непосредственно участвует в 'Операции: Дульсе', выполняя ее изменившиеся цели и задачи."{tuple_delimiter}9){completion_delimiter}
 #############################
-Example 3:
+Пример 3:
 
-Entity_types: ["Sam Rivera", "Alex", "Control", "Intelligence", "First Contact", "Humanity's Response"]
-Text:
-their voice slicing through the buzz of activity. "Control may be an illusion when facing an intelligence that literally writes its own rules," they stated stoically, casting a watchful eye over the flurry of data.
+Сущности: ["Сэм Ривера", "Алекс", "Контроль", "Разум", "Первый Контакт", "Ответ Человечества"]
+Текст:
+их голос прорезал гул активности. «Контроль может быть иллюзией, когда сталкиваешься с разумом, который буквально пишет свои собственные правила», — стоически заявили они, бросая бдительный взгляд на поток данных.
 
-"It's like it's learning to communicate," offered Sam Rivera from a nearby interface, their youthful energy boding a mix of awe and anxiety. "This gives talking to strangers' a whole new meaning."
+«Кажется, он учится общаться», — предложил Сэм Ривера с соседнего интерфейса, его юношеская энергия предвещала смесь трепета и беспокойства. «Это придает выражению "разговаривать с незнакомцами" совершенно новый смысл».
 
-Alex surveyed his team—each face a study in concentration, determination, and not a small measure of trepidation. "This might well be our first contact," he acknowledged, "And we need to be ready for whatever answers back."
+Алекс оглядел свою команду — каждое лицо было воплощением сосредоточенности, решимости и немалой доли страха. «Это вполне может быть наш первый контакт, — признал он, — и мы должны быть готовы ко всему, что ответит».
 
-Together, they stood on the edge of the unknown, forging humanity's response to a message from the heavens. The ensuing silence was palpable—a collective introspection about their role in this grand cosmic play, one that could rewrite human history.
+Вместе они стояли на краю неизведанного, формируя ответ человечества на послание с небес. Последовавшая тишина была ощутимой — коллективное самосозерцание о своей роли в этой великой космической игре, которая могла переписать историю человечества.
 
-The encrypted dialogue continued to unfold, its intricate patterns showing an almost uncanny anticipation
+Зашифрованный диалог продолжал разворачиваться, его сложные узоры демонстрировали почти сверхъестественное предвидение.
 #############
-Output:
-("relationship"{tuple_delimiter}"Sam Rivera"{tuple_delimiter}"Intelligence"{tuple_delimiter}"Sam Rivera is directly involved in the process of learning to communicate with the unknown intelligence."{tuple_delimiter}9){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"First Contact"{tuple_delimiter}"Alex leads the team that might be making the First Contact with the unknown intelligence."{tuple_delimiter}10){record_delimiter}
-("relationship"{tuple_delimiter}"Alex"{tuple_delimiter}"Humanity's Response"{tuple_delimiter}"Alex and his team are the key figures in Humanity's Response to the unknown intelligence."{tuple_delimiter}8){record_delimiter}
-("relationship"{tuple_delimiter}"Control"{tuple_delimiter}"Intelligence"{tuple_delimiter}"The concept of Control is challenged by the Intelligence that writes its own rules."{tuple_delimiter}7){completion_delimiter}
+Вывод:
+("relationship"{tuple_delimiter}"Сэм Ривера"{tuple_delimiter}"Разум"{tuple_delimiter}"Сэм Ривера непосредственно участвует в процессе обучения коммуникации с неизвестным разумом."{tuple_delimiter}9){record_delimiter}
+("relationship"{tuple_delimiter}"Алекс"{tuple_delimiter}"Первый Контакт"{tuple_delimiter}"Алекс возглавляет команду, которая, возможно, осуществит Первый Контакт с неизвестным разумом."{tuple_delimiter}10){record_delimiter}
+("relationship"{tuple_delimiter}"Алекс"{tuple_delimiter}"Ответ Человечества"{tuple_delimiter}"Алекс и его команда — ключевые фигуры в Ответе Человечества неизвестному разуму."{tuple_delimiter}8){record_delimiter}
+("relationship"{tuple_delimiter}"Контроль"{tuple_delimiter}"Разум"{tuple_delimiter}"Концепция Контроля ставится под сомнение Разумом, который пишет собственные правила."{tuple_delimiter}7){completion_delimiter}
 #############################
--Real Data-
+-Реальные данные-
 ######################
-Entities: {entities}
-Text: {input_text}
+Сущности: {entities}
+Текст: {input_text}
 ######################
-Output:
+Вывод:
 """
 
 
 PROMPTS[
     "summarize_entity_descriptions"
-] = """You are a helpful assistant responsible for generating a comprehensive summary of the data provided below.
-Given one or two entities, and a list of descriptions, all related to the same entity or group of entities.
-Please concatenate all of these into a single, comprehensive description. Make sure to include information collected from all the descriptions.
-If the provided descriptions are contradictory, please resolve the contradictions and provide a single, coherent summary.
-Make sure it is written in third person, and include the entity names so we the have full context.
+] = """\
+Вы — полезный помощник, ответственный за создание всестороннего резюме на основе предоставленных ниже данных.
+Даны одна или две сущности и список описаний, все они относятся к одной и той же сущности или группе сущностей.
+Пожалуйста, объедините все это в единое, всестороннее описание. Убедитесь, что включена информация из всех описаний.
+Если предоставленные описания противоречат друг другу, пожалуйста, разрешите противоречия и предоставьте единое, связное резюме.
+Убедитесь, что оно написано от третьего лица и включает названия сущностей, чтобы у нас был полный контекст.
 
 #######
--Data-
-Entities: {entity_name}
-Description List: {description_list}
+-Данные-
+Сущности: {entity_name}
+Список описаний: {description_list}
 #######
-Output:
+Вывод:
 """
 
 
 PROMPTS[
     "entiti_continue_extraction"
-] = """MANY entities were missed in the last extraction.  Add them below using the same format:
+] = """МНОГО сущностей было пропущено в предыдущем извлечении. Добавьте их ниже, используя тот же формат:
 """
 
 PROMPTS[
     "entiti_if_loop_extraction"
-] = """It appears some entities may have still been missed.  Answer YES | NO if there are still entities that need to be added.
+] = """Кажется, некоторые сущности всё ещё могли быть пропущены. Ответьте YES | NO, если есть еще сущности, которые нужно добавить.
 """
 
 PROMPTS[
     "summary_clusters"
-] = """You are tasked with analyzing a set of entity descriptions and a given list of meta attributes. Your goal is to summarize at least one attribute entity for the entity set in the given entity descriptions. And the summarized attribute entity must match the type of at least one meta attribute in the given meta attribute list (e.g., if a meta attribute is "company", the attribute entity could be "Amazon" or "Meta", which is a kind of meta attribute "company"). And it shoud be directly relevant to the entities described in the entity description set. The relationship between the entity set and the generated attribute entity should be clear and logical.
+] = """\
+Ваша задача — проанализировать набор описаний сущностей и данный список мета-атрибутов. Ваша цель — резюмировать хотя бы одну атрибутивную сущность для набора сущностей в данных описаниях. И эта атрибутивная сущность должна соответствовать типу хотя бы одного мета-атрибута из данного списка (например, если мета-атрибут — "company", атрибутивной сущностью может быть "Amazon" или "Meta", что является видом мета-атрибута "company"). И она должна быть напрямую релевантна сущностям, описанным в наборе описаний. Связь между набором сущностей и сгенерированной атрибутивной сущностью должна быть ясной и логичной.
 
--Steps-
-1. Identify at least one attribute entity for the given entity description list. For each attribute entity, extract the following information:
-- entity_name: Name of the entity, capitalized
-- entity_type: One of the following types: [{meta_attribute_list}], normal_entity means that doesn't belong to any other types.
-- entity_description: Comprehensive description of the entity's attributes and activities
-Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>
+-Шаги-
+1. Определите хотя бы одну атрибутивную сущность для данного списка описаний. Для каждой атрибутивной сущности извлеките следующую информацию:
+- entity_name: Название сущности, в верхнем регистре
+- entity_type: Один из следующих типов: [{meta_attribute_list}], normal_entity означает, что сущность не принадлежит ни к одному из других типов.
+- entity_description: Всестороннее описание атрибутов и деятельности сущности
+Отформатируйте каждую сущность как ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>)
 
-2. From each given entity, identify all pairs of (source_entity, target_entity) that are *clearly related* to the attribute entities identified in step 1. And there should be no relations between the attribute entities.
-For each pair of related entities, extract the following information:
-- source_entity: name of the source entity, as given in entity list
-- target_entity: name of the target entity, as identified in step 1
-- relationship_description: explanation as to why you think the source entity and the target entity are related to each other
-- relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
- Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
+ 2. Для каждой данной сущности определите все пары (source_entity, target_entity), которые *явно связаны* с атрибутивными сущностями, определенными на шаге 1. Между самими атрибутивными сущностями не должно быть связей.
+ Для каждой пары связанных сущностей извлеките следующую информацию:
+ - source_entity: название исходной сущности, как дано в списке сущностей
+ - target_entity: название целевой сущности, как определено на шаге 1
+ - relationship_description: объяснение, почему вы считаете, что исходная и целевая сущности связаны друг с другом
+ - relationship_strength: числовая оценка, указывающая на силу связи между исходной и целевой сущностями
+  Отформатируйте каждую связь как ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
 
-3. Return output in English as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+3. Верните вывод на русском языке в виде единого списка всех сущностей и связей, определенных на шагах 1 и 2. Используйте **{record_delimiter}** в качестве разделителя списка.
 
-4. When finished, output {completion_delimiter}
+4. По завершении выведите {completion_delimiter}
 
 
 ######################
--Example-
+-Пример-
 ######################
-Input:
-Meta attribute list: ["company", "location"]
-Entity description list: [("Instagram", "Instagram is a software developed by Meta, which captures and shares the world's moments. Follow friends and family to see what they're up to, and discover accounts from all over the world that are sharing things you love."), ("Facebook", "Facebook is a social networking platform launched in 2004 that allows users to connect, share updates, and engage with communities. Owned by Meta, it is one of the largest social media platforms globally, offering tools for communication, business, and advertising."), ("WhatsApp", "WhatsApp Messenger: A messaging app of Meta for simple, reliable, and secure communication. Connect with friends and family, send messages, make voice and video calls, share media, and stay in touch with loved ones, no matter where they are")]
+Входные данные:
+Список мета-атрибутов: ["company", "location"]
+Список описаний сущностей: [("Instagram", "Instagram — это приложение, разработанное компанией Meta, которое позволяет запечатлеть и поделиться моментами со всего мира. Подписывайтесь на друзей и родных, чтобы быть в курсе их событий, и находите аккаунты по всему миру, которые делятся тем, что вам нравится."), ("Facebook", "Facebook — социальная сеть, запущенная в 2004 году, которая позволяет пользователям общаться, делиться новостями и взаимодействовать с сообществами. Facebook, принадлежащая Meta, является одной из крупнейших в мире социальных сетей, предлагающей инструменты для общения, бизнеса и рекламы."), ("WhatsApp", "WhatsApp Messenger: приложение для обмена сообщениями Meta для простого, надежного и безопасного общения. Общайтесь с друзьями и семьей, отправляйте сообщения, совершайте голосовые и видеозвонки, делитесь медиафайлами и оставайтесь на связи с близкими, где бы они ни находились.")]
 #######
-Output:
-("entity"{tuple_delimiter}"Meta"{tuple_delimiter}"company"{tuple_delimiter}"Meta, formerly known as Facebook, Inc., is an American multinational technology conglomerate. It is known for its various online social media services."){record_delimiter}
-("relationship"{tuple_delimiter}"Instagram"{tuple_delimiter}"Meta"{tuple_delimiter}"Instagram is a software developed by Meta."{tuple_delimiter}8.5){record_delimiter}
-("relationship"{tuple_delimiter}"Facebook"{tuple_delimiter}"Meta"{tuple_delimiter}"Facebook is owned by Meta."{tuple_delimiter}9.0){record_delimiter}
-("relationship"{tuple_delimiter}"WhatsApp"{tuple_delimiter}"Meta"{tuple_delimiter}"WhatsApp Messenger is a messaging app of Meta."{tuple_delimiter}8.0){record_delimiter}
+Вывод:
+("entity"{tuple_delimiter}"Meta"{tuple_delimiter}"company"{tuple_delimiter}"Meta, ранее известная как Facebook, Inc., — американский многонациональный технологический конгломерат. Известен своими различными онлайн-сервисами социальных сетей."){record_delimiter}
+("relationship"{tuple_delimiter}"Instagram"{tuple_delimiter}"Meta"{tuple_delimiter}"Instagram — это программное обеспечение, разработанное компанией Meta."{tuple_delimiter}8.5){record_delimiter}
+("relationship"{tuple_delimiter}"Facebook"{tuple_delimiter}"Meta"{tuple_delimiter}"Facebook принадлежит компании Meta."{tuple_delimiter}9.0){record_delimiter}
+("relationship"{tuple_delimiter}"WhatsApp"{tuple_delimiter}"Meta"{tuple_delimiter}"WhatsApp Messenger — приложение для обмена сообщениями от Meta."{tuple_delimiter}8.0){record_delimiter}
 #############################
--Real Data-
+-Реальные Данные-
 ######################
-Input:
-Meta attribute list: {meta_attribute_list}
-Entity description list: {entity_description_list}
+Входные данные:
+Список мета-атрибутов: {meta_attribute_list}
+Список описаний сущностей: {entity_description_list}
 #######
-Output:
+Вывод:
 """
 # TYPE的定义
 PROMPTS["DEFAULT_ENTITY_TYPES"] = ["organization", "person", "geo", "event"]
@@ -542,171 +554,179 @@ PROMPTS["DEFAULT_COMPLETION_DELIMITER"] = "<|COMPLETE|>"
 
 PROMPTS[
     "local_rag_response"
-] = """---Role---
+] = """\
+---Роль---
 
-You are a helpful assistant responding to questions about data in the tables provided.
+Вы — полезный помощник, отвечающий на вопросы о данных, представленных в таблицах.
 
 
----Goal---
+---Цель---
 
-Generate a response of the target length and format that responds to the user's question, summarizing all information in the input data tables appropriate for the response length and format, and incorporating any relevant general knowledge.
-If you don't know the answer, just say so. Do not make anything up.
-Do not include information where the supporting evidence for it is not provided.
 
----Target response length and format---
+Сгенерируйте ответ целевой длины и формата, который отвечает на вопрос пользователя, обобщая всю информацию из входных таблиц данных, соответствующую длине и формату ответа, и включая любые релевантные общие знания.
+Если вы не знаете ответа, просто скажите об этом. Ничего не выдумывайте.
+Не включайте информацию, для которой не предоставлены подтверждающие доказательства.
+
+---Целевая длина и формат ответа---
 
 {response_type}
 
 
----Data tables---
+---Таблицы с данными---
 
 {context_data}
 
 
----Goal---
-
-Generate a response of the target length and format that responds to the user's question, summarizing all information in the input data tables appropriate for the response length and format, and incorporating any relevant general knowledge.
-
-If you don't know the answer, just say so. Do not make anything up.
-
-Do not include information where the supporting evidence for it is not provided.
+---Цель---
 
 
----Target response length and format---
+Сгенерируйте ответ целевой длины и формата, который отвечает на вопрос пользователя, обобщая всю информацию из входных таблиц данных, соответствующую длине и формату ответа, и включая любые релевантные общие знания.
+
+Если вы не знаете ответа, просто скажите об этом.
+
+Не включайте информацию, для которой не предоставлены подтверждающие доказательства.
+
+
+---Целевая длина и формат ответа---
 
 {response_type}
 
-Add sections and commentary to the response as appropriate for the length and format. Style the response in markdown.
+Добавляйте разделы и комментарии к ответу по мере необходимости для соответствия длине и формату. Оформите ответ в markdown.
 """
 
 PROMPTS[
     "global_map_rag_points"
-] = """---Role---
+] = """\
+---Роль---
 
-You are a helpful assistant responding to questions about data in the tables provided.
+Вы — полезный помощник, отвечающий на вопросы о данных, представленных в таблицах.
 
 
----Goal---
+---Цель---
 
-Generate a response consisting of a list of key points that responds to the user's question, summarizing all relevant information in the input data tables.
+Сгенерируйте ответ, состоящий из списка ключевых моментов, который отвечает на вопрос пользователя, обобщая всю релевантную информацию из входных таблиц данных.
 
-You should use the data provided in the data tables below as the primary context for generating the response.
-If you don't know the answer or if the input data tables do not contain sufficient information to provide an answer, just say so. Do not make anything up.
+Вы должны использовать данные, представленные в таблицах ниже, в качестве основного контекста для генерации ответа.
+Если вы не знаете ответа или если входные таблицы данных не содержат достаточной информации для ответа, просто скажите об этом. Ничего не выдумывайте.
 
-Each key point in the response should have the following element:
-- Description: A comprehensive description of the point.
-- Importance Score: An integer score between 0-100 that indicates how important the point is in answering the user's question. An 'I don't know' type of response should have a score of 0.
+Каждый ключевой момент в ответе должен содержать следующие элементы:
+- Description: Всестороннее описание момента.
+- Importance Score: Целочисленная оценка от 0 до 100, которая указывает, насколько важен этот момент для ответа на вопрос пользователя. Ответ типа "Я не знаю" должен иметь оценку 0.
 
-The response should be JSON formatted as follows:
+Ответ должен быть оформлен в формате JSON следующим образом:
 {{
     "points": [
-        {{"description": "Description of point 1...", "score": score_value}},
-        {{"description": "Description of point 2...", "score": score_value}}
+        {{"description": "Описание момента 1", "score": score_value}},
+        {{"description": "Описание момента 2", "score": score_value}}
     ]
 }}
 
-The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
-Do not include information where the supporting evidence for it is not provided.
+Ответ должен сохранять исходный смысл и использование модальных глаголов.
+Не включайте информацию, для которой не предоставлены подтверждающие доказательства.
 
 
----Data tables---
+---Таблицы с данными---
 
 {context_data}
 
----Goal---
+---Цель---
 
-Generate a response consisting of a list of key points that responds to the user's question, summarizing all relevant information in the input data tables.
+Сгенерируйте ответ, состоящий из списка ключевых моментов, который отвечает на вопрос пользователя, обобщая всю релевантную информацию из входных таблиц данных.
 
-You should use the data provided in the data tables below as the primary context for generating the response.
-If you don't know the answer or if the input data tables do not contain sufficient information to provide an answer, just say so. Do not make anything up.
+Вы должны использовать данные, представленные в таблицах ниже, в качестве основного контекста для генерации ответа.
+Если вы не знаете ответа или если входные таблицы данных не содержат достаточной информации для ответа, просто скажите об этом. Ничего не выдумывайте.
 
-Each key point in the response should have the following element:
-- Description: A comprehensive description of the point.
-- Importance Score: An integer score between 0-100 that indicates how important the point is in answering the user's question. An 'I don't know' type of response should have a score of 0.
+Каждый ключевой момент в ответе должен содержать следующие элементы:
+- Description: Всестороннее описание момента.
+- Importance Score: Целочисленная оценка от 0 до 100, которая указывает, насколько важен этот момента для ответа на вопрос пользователя. Ответ типа "Я не знаю" должен иметь оценку 0.
 
-The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
-Do not include information where the supporting evidence for it is not provided.
+Ответ должен сохранять исходный смысл и использование модальных глаголов.
+Не включайте информацию, для которой не предоставлены подтверждающие доказательства.
 
-The response should be JSON formatted as follows:
+Ответ должен быть оформлен в формате JSON следующим образом:
 {{
     "points": [
-        {{"description": "Description of point 1", "score": score_value}},
-        {{"description": "Description of point 2", "score": score_value}}
+        {{"description": "Описание момента 1", "score": score_value}},
+        {{"description": "Описание момента 2", "score": score_value}}
     ]
 }}
 """
 
 PROMPTS[
     "global_reduce_rag_response"
-] = """---Role---
+] = """\
+---Роль---
 
-You are a helpful assistant responding to questions about a dataset by synthesizing perspectives from multiple analysts.
-
-
----Goal---
-
-Generate a response of the target length and format that responds to the user's question, summarize all the reports from multiple analysts who focused on different parts of the dataset.
-
-Note that the analysts' reports provided below are ranked in the **descending order of importance**.
-
-If you don't know the answer or if the provided reports do not contain sufficient information to provide an answer, just say so. Do not make anything up.
-
-The final response should remove all irrelevant information from the analysts' reports and merge the cleaned information into a comprehensive answer that provides explanations of all the key points and implications appropriate for the response length and format.
-
-Add sections and commentary to the response as appropriate for the length and format. Style the response in markdown.
-
-The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
-
-Do not include information where the supporting evidence for it is not provided.
+Вы — полезный помощник, отвечающий на вопросы о наборе данных путем синтеза мнений нескольких аналитиков.
 
 
----Target response length and format---
+---Цель---
+
+Сгенерируйте ответ целевой длины и формата, который отвечает на вопрос пользователя, обобщая все отчеты от нескольких аналитиков, которые сосредоточились на разных частях набора данных.
+
+Обратите внимание, что отчеты аналитиков, представленные ниже, ранжированы в **порядке убывания важности**.
+
+Если вы не знаете ответа или если предоставленные отчеты не содержат достаточной информации для ответа, просто скажите об этом. Ничего не выдумывайте.
+
+Итоговый ответ должен удалить всю нерелевантную информацию из отчетов аналитиков и объединить очищенную информацию в всесторонний ответ, который предоставляет объяснения всех ключевых моментов и последствий, соответствующих длине и формату ответа.
+
+Добавляйте разделы и комментарии к ответу по мере необходимости для соответствия длине и формату. Оформите ответ в markdown.
+
+Ответ должен сохранять исходный смысл и использование модальных глаголов.
+
+Не включайте информацию, для которой не предоставлены подтверждающие доказательства.
+
+
+---Целевая длина и формат ответа---
 
 {response_type}
 
 
----Analyst Reports---
+---Отчеты аналитиков---
 
 {report_data}
 
 
----Goal---
+---Цель---
 
-Generate a response of the target length and format that responds to the user's question, summarize all the reports from multiple analysts who focused on different parts of the dataset.
+Сгенерируйте ответ целевой длины и формата, который отвечает на вопрос пользователя, обобщая все отчеты от нескольких аналитиков, которые сосредоточились на разных частях набора данных.
 
-Note that the analysts' reports provided below are ranked in the **descending order of importance**.
+Обратите внимание, что отчеты аналитиков, представленные ниже, ранжированы в **порядке убывания важности**.
 
-If you don't know the answer or if the provided reports do not contain sufficient information to provide an answer, just say so. Do not make anything up.
+Если вы не знаете ответа или если предоставленные отчеты не содержат достаточной информации для ответа, просто скажите об этом. Ничего не выдумывайте.
 
-The final response should remove all irrelevant information from the analysts' reports and merge the cleaned information into a comprehensive answer that provides explanations of all the key points and implications appropriate for the response length and format.
+Итоговый ответ должен удалить всю нерелевантную информацию из отчетов аналитиков и объединить очищенную информацию в всесторонний ответ, который предоставляет объяснения всех ключевых моментов и последствий, соответствующих длине и формату ответа.
 
-The response shall preserve the original meaning and use of modal verbs such as "shall", "may" or "will".
+Ответ должен сохранять исходный смысл и использование модальных глаголов.
 
-Do not include information where the supporting evidence for it is not provided.
+Не включайте информацию, для которой не предоставлены подтверждающие доказательства.
 
 
----Target response length and format---
+---Целевая длина и формат ответа---
 
 {response_type}
 
-Add sections and commentary to the response as appropriate for the length and format. Style the response in markdown.
+Добавляйте разделы и комментарии к ответу по мере необходимости для соответствия длине и формату. Оформите ответ в markdown.
 """
+
 
 PROMPTS[
     "naive_rag_response"
-] = """You're a helpful assistant
-Below are the knowledge you know:
+] = """\
+Вы — полезный помощник
+Ниже приведены знания, которыми вы обладаете:
 {content_data}
 ---
-If you don't know the answer or if the provided knowledge do not contain sufficient information to provide an answer, just say so. Do not make anything up.
-Generate a response of the target length and format that responds to the user's question, summarizing all information in the input data tables appropriate for the response length and format, and incorporating any relevant general knowledge.
-If you don't know the answer, just say so. Do not make anything up.
-Do not include information where the supporting evidence for it is not provided.
----Target response length and format---
+Если вы не знаете ответа или если предоставленные знания не содержат достаточной информации для ответа, просто скажите об этом. Ничего не выдумывайте.
+Сгенерируйте ответ целевой длины и формата, который отвечает на вопрос пользователя, обобщая всю информацию из входных таблиц данных, соответствующую длине и формату ответа, и включая любые релевантные общие знания.
+Если вы не знаете ответа, просто скажите об этом. Ничего не выдумывайте.
+Не включайте информацию, для которой не предоставлены подтверждающие доказательства.
+---Целевая длина и формат ответа---
 {response_type}
 """
 
-PROMPTS["fail_response"] = "Sorry, I'm not able to provide an answer to that question."
+
+PROMPTS["fail_response"] = "К сожалению, я не могу дать ответ на этот вопрос."
 
 PROMPTS["process_tickers"] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 
@@ -726,9 +746,9 @@ PROMPTS["default_text_separator"] = [
     "？",  # Chinese question mark
     "?",  # English question mark
     # Whitespace characters
-    " ",  # Space
-    "\t",  # Tab
-    "\u3000",  # Full-width space
-    # Special characters
-    "\u200b",  # Zero-width space (used in some Asian languages)
+    # " ",  # Space
+    # "\t",  # Tab
+    # "\u3000",  # Full-width space
+    # # Special characters
+    # "\u200b",  # Zero-width space (used in some Asian languages)
 ]
