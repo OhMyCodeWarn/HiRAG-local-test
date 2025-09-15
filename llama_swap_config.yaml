@@ -1,5 +1,26 @@
 logLevel: debug
 models:
+  "qwen3-30b-a3b-Instruct-2507-iq5":
+    cmd: /home/nvk/Projects/ik_llama.cpp/build/bin/llama-server
+      --model "/home/nvk/.cache/huggingface/hub/models--ubergarm--Qwen3-30B-A3B-Instruct-2507-GGUF/snapshots/de2a086da3770d91459f38c58cdc856b23e7d041/Qwen3-30B-A3B-Instruct-2507-IQ5_K.gguf"
+      --alias "qwen3-30b-a3b-Instruct-2507-iq5"
+      --threads 16
+      --ctx-size 65536
+      --batch-size 4096
+      --ubatch-size 4096
+      --flash-attn
+      --fused-moe
+      --gpu-layers 99
+      -ot "blk\.([0-9]|10|11|12|13|14|15)\.ffn.*=CUDA0"
+      -ot exps=CPU
+      --log-enable
+      --parallel 1
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --jinja
+      --no-mmap
+      --port ${PORT}
+      --predict 16384
   "qwen3-30b-a3b-Instruct-2507":
     env:
       - "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
@@ -10,14 +31,39 @@ models:
       --threads -1
       --alias "qwen3-30b-a3b-Instruct-2507"
       --n-gpu-layers 99
-      -n 16384
-      --parallel 4
-      --flash-attn
+      -n 100
+      --parallel 1
+      -fa on
       --cache-type-k q8_0
       --cache-type-v q8_0
-      --ctx-size 230400
+      --ctx-size 65536
       --cpu-moe
       --temp 0.7
+      --min-p 0.0
+      --top-p 0.8
+      --top-k 20
+      --jinja
+      --port ${PORT}
+      --log-colors
+      --verbose
+      --log-timestamps
+
+  "bebra":
+    env:
+      - "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
+      - "GGML_CUDA_FA_ALL_QUANTS=1"
+    cmd: /home/nvk/Projects/llama.cpp/build/bin/llama-server
+      -m "/home/nvk/.cache/huggingface/hub/models--unsloth--Qwen3-4B-Instruct-2507-GGUF/snapshots/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-UD-Q8_K_XL.gguf"
+      --threads -1
+      --alias "qwen3-30b-a3b-Instruct-2507"
+      --n-gpu-layers 99
+      -n 16384
+      --parallel 2
+      -fa on
+      --cache-type-k q8_0
+      --cache-type-v q8_0
+      --ctx-size 131072
+      --temp 0.05
       --min-p 0.0
       --top-p 0.8
       --top-k 20
@@ -32,21 +78,23 @@ models:
       - "MODEL=/home/nvk/.cache/huggingface/hub/models--jinaai--jina-embeddings-v4-text-retrieval-GGUF/snapshots/c29af6c5c28af2448ffda650afa0b8ea24076625/jina-embeddings-v4-text-retrieval-IQ3_M.gguf"
     cmd: /home/nvk/Projects/llama.cpp/build/bin/llama-server
       -m "/home/nvk/.cache/huggingface/hub/models--jinaai--jina-embeddings-v4-text-retrieval-GGUF/snapshots/c29af6c5c28af2448ffda650afa0b8ea24076625/jina-embeddings-v4-text-retrieval-IQ3_M.gguf"
+      --n-gpu-layers 99
       --embedding
       --pooling mean
       -ub 8192
       -c 8192
-      --flash-attn
+      --flash-attn on
       --alias "jina-embeddings-v4"
       --port ${PORT}
 groups:
   "concurrent-models":
     # swap: false - позволяет всем моделям работать одновременно
-    swap: false
+    swap: true
     # exclusive: false - не выгружает другие группы
     exclusive: false
     # persistent: true - предотвращает выгрузку этой группы другими
     persistent: true
     members:
       - "jina-embeddings-v4"
-      - "qwen3-30b-a3b-Instruct-2507"
+      - "qwen3-30b-a3b-Instruct-2507-iq5"
+      - "bebra"

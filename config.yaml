@@ -1,7 +1,7 @@
 # OpenAI Configuration
 openai:
   embedding_model: "jina-embeddings-v4"
-  model: "qwen3-30b-a3b-Instruct-2507"
+  model: "bebra"
   api_key: "llamacpp"
   base_url: "http://localhost:8080/v1"
 
@@ -27,7 +27,7 @@ model_params:
 # HiRAG Configuration
 hirag:
   working_dir: "vol2-hirag"
-  enable_llm_cache: false
+  enable_llm_cache: true
   enable_hierachical_mode: true
   embedding_batch_num: 6
   embedding_func_max_async: 8

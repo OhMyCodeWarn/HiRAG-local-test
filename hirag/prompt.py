@@ -732,6 +732,10 @@ PROMPTS["process_tickers"] = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "
 
 PROMPTS["default_text_separator"] = [
     # Paragraph separators
+    "#####",
+    "####",
+    "###",
+    "##",
     "\n\n",
     "\r\n\r\n",
     # Line breaks

@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from hirag.base import BaseKVStorage
 from hirag._utils import compute_args_hash
 
+logging.basicConfig(level=logging.DEBUG)
+
 # Load configuration from YAML file
 with open('config.yaml', 'r') as file:
     config = yaml.safe_load(file)
@@ -42,9 +44,9 @@ def wrap_embedding_func_with_attrs(**kwargs):
 @wrap_embedding_func_with_attrs(embedding_dim=config['model_params']['openai_embedding_dim'], max_token_size=config['model_params']['max_token_size'])
 async def OPENAI_embedding(texts: list[str]) -> np.ndarray:
     openai_async_client = AsyncOpenAI(base_url=OPENAI_URL, api_key=OPENAI_API_KEY)
-    texts4jinja = [f"Passage: {text}" for text in texts]
-    # texts4jinja = [f"Query: {text}" for text in texts]
-    print(f"{texts4jinja = }")
+    # texts4jinja = [f"Passage: {text}" for text in texts]
+    texts4jinja = [f"Query: {text}" for text in texts]
+    # print(f"{texts4jinja = }")
     response = await openai_async_client.embeddings.create(
         model=OPENAI_EMBEDDING_MODEL, input=texts4jinja, encoding_format="float"
     )
@@ -54,7 +56,7 @@ async def OPENAI_model_if_cache(
     prompt, system_prompt=None, history_messages=[], **kwargs
 ) -> str:
     openai_async_client = AsyncOpenAI(
-        api_key=OPENAI_API_KEY, base_url=OPENAI_URL, max_retries=999, timeout=99999
+        api_key=OPENAI_API_KEY, base_url=OPENAI_URL, max_retries=999, timeout=60*30
     )
     messages = []
     if system_prompt:
@@ -72,7 +74,7 @@ async def OPENAI_model_if_cache(
     # -----------------------------------------------------
 
     response = await openai_async_client.chat.completions.create(
-        model=OPENAI_MODEL, messages=messages, max_completion_tokens=16384, **kwargs
+        model=OPENAI_MODEL, messages=messages, max_completion_tokens=16384, temperature=0.05, **kwargs
     )
 
     # Cache the response if having-------------------
@@ -97,10 +99,11 @@ graph_func = HiRAG(
 )
 
 # comment this if the working directory has already been indexed
-with open("book/vol_2.md") as f:
-    vol_content = f.read()
-graph_func.insert(vol_content)
+# with open("book/vol_2.md") as f:
+#     vol_content = f.read()
+# graph_func.insert(vol_content)
 
 
-# print("Perform hi search:")
-# print(graph_func.query("Что такое Монитор Заданий?", param=QueryParam(mode="hi")))
+print("Perform hi search:")
+q = "Как выполнить задание Принять возврат от клиента в МЗ, если нужно выполнить возврат по заказу, а не по поставке?"
+print(graph_func.query(q, param=QueryParam(mode="hi")))
